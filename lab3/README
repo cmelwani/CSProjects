@@ -1,0 +1,91 @@
+/**********************************************************
+* Lab 3: Circular Lists
+* Comp 15 Fall 2019
+* README
+* Author: Tanya Sinha
+* Modified: Alice Dempsey, August 2019
+*           Juliana Vega, January 2020
+            Cheryl Melwani, January 2020
+*********************************************************/
+
+Program Purpose: This lab assignment is to learn about CircularBuffers.
+The idea of a circular array is that the end of the array “wraps around”
+to the start of the array.
+In this lab, Comp 15 students are helping the DJ filter songs using a
+Stack (last in first out) and a Queue. Both the Stack
+and Queue (first in first out) are implemented using an object of
+CircularBuffer class.
+
+
+Acknowledgements: I read about Circular Sequence / Buffer on:
+bit.ly/DJSequence -- the instructions of the Comp15 Lab
+*REPLACE THIS WITH YOUR OWN ACKNOWLEDGMENTS*
+
+Run command: Run executable with "./partyPlaylist"
+
+Files:
+
+CircularBuffer.cpp: Implementation of a standard CircularBuffer class.
+Pre-written is a default constructor, an overloaded constructor, a destructor,
+and an addAtBack function that adds a given element to the back of the list, and
+a removeFromBack function that removes the last element of the list, and a print
+function that prints the contents of the Buffer, one element per line.
+
+STUDENT TODO:
+Write a nextIndex helper function that returns the next index given an index
+in the Buffer. Also, write an addAtFront function that adds an element to
+the "front" of the Buffer, a removeFromFront function that removes the
+first element in the Buffer and returns it, and an expand function that
+exapnds the circular array.
+
+CircularBuffer.h: Interface of CircularBuffer class.
+
+Queue.cpp: Implementation of Queue class. There is a default
+constructor and destructor, but there is nothing to do here because
+the buffer constructor and destructor runs automatically. A print function
+is provided for you to use during testing.
+
+STUDENT TODO:
+Write an enqueue function that adds a new element to the back of the queue,
+a dequeue function that removes the first element in the queue and returns
+it.
+
+Queue.h: Interface of Queue class. The Queue is
+implemented using a CircularBuffer. It has one private data member:
+CircularBuffer queue.
+
+
+Stack.cpp: Implementation of Stack class. There is a default
+constructor and destructor, but there is nothing to do here because
+the buffer constructor and destructor runs automatically. A print function
+is provided for you to use during testing.
+
+STUDENT TODO:
+Write a push function that adds a given element to the top of the stack,
+a pop function that removes the top element from the stack and returns it.
+
+Stack.h: Interface of the Stack class. The Stack is
+implemented using a CircularBuffer. It has one private data member:
+CircularBuffer stack.
+
+Data Structures: The main data structure of this lab is a circular buffer.
+A circular buffer is a dynamic buffer with the unique property that the
+end of the array "wraps around" to the start of the array. This gives users
+the ability to add elements to the front and remove elements from the front.
+
+
+Testing: Here describe the following: process of testing
+(unit tests), mention of bugs you encountered while testing,
+mention of testing on inputs of different sizes and edge
+cases, good description of base cases you considered while
+testing. Demonstrate a methodical approach to testing. This
+section of your REAMDE should be very thorough for homework
+assignments.
+
+Brief Example: For this lab, I tested my functions using main.cpp. I created
+three separate testing functions: testCircularBuffer, testStack, and
+testQueue. Within each testing function, I tested each individual
+function that I wrote and compared the output by printing the CircularBuffer.
+I tested my function with edge cases and compared it to the expected output.
+For CircularBuffer, I added more songs than initial capacity, so that the
+expand function would have to be invoked...
