@@ -1,0 +1,15 @@
+
+I'm doing this lab in order to:
+- pass the time in pleasant company.
+- understand what universal polymorphism is and how I can practically apply it.
+- to avoid bad things that might happen if I don't do it.
+
+
+How did universal polymorphism affect the implementation. Was it helpful?
+
+Universal polymorphism is pretty much the idea that a template encompasses.
+The ideas of universal polymorphism allows for the same functions to be used
+on different data types. A template is a general outline of a class that
+can be used with different data types as shown through lab10 and therefore
+the idea encompasses what universal polymorphism is. Meaning it's not helpful
+but pretty integral to the implementation of a template.
