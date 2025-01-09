@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+
+<title>Comp 86 Assignment 8</title>
+
+<script type="text/javascript">
+
+//Comp 86 Assignment 8 - Cheryl Melwani
+
+//function that creates the squares on the screen
+function create(width) {
+    var c = document.getElementById ("MyCanvas");
+	var gc = c.getContext("2d");
+    gc.strokeRect(100, 100, width, width);
+}
+
+//function that draws the background
+function drawBackground () {
+	var c = document.getElementById ("MyCanvas");
+	var gc = c.getContext("2d");
+	gc.fillStyle = "#EEEEEE";
+    gc.fillRect (50, 50, c.width, c.height);
+}
+
+//function that changes the size of the square
+function changeSize(width) {
+	drawBackground ();
+	var c = document.getElementById ("MyCanvas");
+    var gc = c.getContext("2d");
+    gc.strokeRect(100, 100, width, width);
+}
+
+//function that draws everything on the screen
+window.onload = function () {
+    var sq_width1 = 50;
+    var sq_width2 = 25;
+
+    drawBackground();
+    create(sq_width1);
+    create(sq_width2);
+
+    document.getElementById("Bigger 1").onclick = function() {
+        sq_width1 += 10;
+        changeSize(sq_width1);
+        create(sq_width2);
+    }
+
+    document.getElementById("Bigger 2").onclick = function() {
+        sq_width2 += 10;
+        changeSize(sq_width2);
+        create(sq_width1);
+    }
+
+    document.getElementById("Smaller 1").onclick = function() {
+        sq_width1 -= 10;
+        changeSize(sq_width1);
+        create(sq_width2);
+    }
+
+    document.getElementById("Smaller 2").onclick = function() {
+        sq_width2 -= 10;
+        changeSize(sq_width2);
+        create(sq_width1);
+    }
+}
+
+//HTML body that creates the buttons and the canvas on the screen
+</script>
+</head>
+
+<body>
+
+<div id="buttonarea">
+    &nbsp;
+    <h2>Square 1:</h2>
+    <button id="Bigger 1">Make Bigger</button>
+    <button id="Smaller 1">Make Smaller</button>
+
+    <h2>Square 2:</h2>
+    <button id="Bigger 2">Make Bigger</button>
+    <button id="Smaller 2">Make Smaller</button>
+</div>
+
+<canvas id="MyCanvas" width="1000" height="1000"></canvas>
+
+<p><span id="showcoords"></span></p>
+
+</body>

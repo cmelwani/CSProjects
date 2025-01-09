@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+
+<title>Comp 86 Assignment 10: 3D World</title>
+
+<script src="http://threejs.org/build/three.min.js"></script>
+<script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
+<script src="http://threejs.org/examples/js/loaders/OBJLoader.js"></script>
+<script src="boiler.js"></script>
+<script src="lights.js"></script>
+
+<script type="text/javascript">
+
+var myScene;
+
+function makeSceneGraph () {
+    myScene = new Scene();
+	scene.add (myScene);
+	lights = new Lights() // Now in a separate lights.js file
+}
+
+animate = function () {
+	requestAnimationFrame( animate );
+	myScene.tick()
+	controls.update()
+}
+
+class Scene extends THREE.Object3D {
+    constructor () {
+        super()
+        
+        this.workers = [];
+        this.workers[0] = new Worker();
+        this.workers[0].position.set(0, -5, -10);
+        this.add(this.workers[0]);
+        
+        this.workers[1] = new Worker();
+        this.workers[1].position.set(-10, -5, -20);
+        this.add(this.workers[1]);
+        
+        this.workers[2] = new Worker();
+        this.workers[2].position.set(10, -5, -20);
+        this.add(this.workers[2]);
+        
+        var board = new Board ();
+        this.add(board);
+        
+        var buildingblocks = new BuildingBlocks ();
+        this.add(buildingblocks);
+        
+        document.getElementById("Move Left").onclick = function() {
+            buildingblocks.moveLeft();
+        }
+        document.getElementById("Move Right").onclick = function() {
+            buildingblocks.moveRight();
+        }
+    }
+
+    tick() {
+        for(var r of this.workers) {
+            r.tick();
+        }
+        render();
+    }
+}
+
+class Worker extends THREE.Object3D {
+    constructor () {
+        super ()
+
+        //creating the bottom box of the worker
+        var geometry = new THREE.BoxGeometry( 1.5, 1, 1.25 );
+        var skin = new THREE.MeshPhongMaterial ({ color: 0xdeb887, shininess: 60 });
+        var box = new THREE.Mesh( geometry , skin );
+        this.add( box );
+        box.position.set (0, 1/2, 0);
+
+        //creating the legs of the worker
+        var geometry_1 = new THREE.CylinderGeometry (.2, .2, 2.5, 20, 20, false);
+        var pants = new THREE.MeshPhongMaterial ({ color: 0x000000 });
+        var column = new THREE.Mesh( geometry_1, pants );
+        column.position.set (0.4, 1.0 + 2.5/2.0, 0);
+        this.add (column);
+
+        var column_2 = new THREE.Mesh( geometry_1, pants );
+        column_2.position.set (-0.4, 1.0 + 2.5/2.0, 0);
+        this.add (column_2);
+        
+        //creating the upper body of the worker
+        var upperbody_vertex = new THREE.Object3D ();
+        upperbody_vertex.position.set (0, 1+2.5, 0);
+        this.add (upperbody_vertex);
+        
+        var body_geometry = new THREE.BoxGeometry(2.2, 3 ,2);
+        var shirt = new THREE.MeshPhongMaterial ({ color: 0xADD8E6});
+        var upperbody = new THREE.Mesh (body_geometry, shirt);
+        upperbody.position.set(0, 1 , 0);
+        upperbody_vertex.add(upperbody);
+
+        var head_geometry = new THREE.SphereGeometry(1, 6, 4, 0, Math.PI * 2, 0, Math.PI);
+        var head = new THREE.Mesh( head_geometry, skin );
+        head.position.set (0, 3 + 1/2., 0);
+        upperbody_vertex.add(head);
+        
+        //creating the arms
+        var arm_geometry = new THREE.BoxGeometry(2, 0.3 ,0.2);
+        var left_arm = new THREE.Mesh( arm_geometry, skin );
+        left_arm.position.set (-2, 1.3, 0);
+        upperbody_vertex.add (left_arm);
+
+        var right_arm = new THREE.Mesh (arm_geometry, skin);
+        right_arm.position.set (2, 1.3, 0);
+        upperbody_vertex.add (right_arm);
+
+        //creating the hat
+        this.hat_vertex = new THREE.Object3D ();
+        this.hat_vertex.position.set (0, 1+2.5, 0);
+        this.add (this.hat_vertex);
+
+        var half_sphere_geometry = new THREE.SphereGeometry(1, 6, 4, 0, Math.PI * 2, 0, Math.PI/2);
+        var hat_color = new THREE.MeshPhongMaterial ({ color: 0xFFD700 });
+        var half_sphere = new THREE.Mesh( half_sphere_geometry, hat_color);
+        half_sphere.position.set (0, 4 + 1/2, 0);
+        this.hat_vertex.add(half_sphere);
+
+        var cylinder_geometry = new THREE.CylinderGeometry (2, 2, 0.1, 10, 10, false);
+        var cylinder_component = new THREE.Mesh(cylinder_geometry, hat_color);
+        cylinder_component.position.set(0, 3.9 + 1/2, 0);
+        this.hat_vertex.add(cylinder_component);
+    }
+
+    tick() {
+        var a = this.hat_vertex.rotation.y;
+        a += (2 * Math.PI) / (9*20);
+        if (a > 2*Math.PI) {
+            a -= 2 * Math.PI
+        }
+        this.hat_vertex.rotation.set (0, a, 0)
+    }
+}
+
+class Board extends THREE.Object3D {
+    constructor() {
+        super()
+
+        var board_geometry = new THREE.BoxGeometry(30, 1, 20);
+        var board_color = new THREE.MeshPhongMaterial ({ color: 0xFFFACD, shininess: 60 });
+        var board = new THREE.Mesh( board_geometry , board_color );
+        board.position.set(0, -6, -15)
+        this.add( board );
+        
+    }
+}
+
+class BuildingBlocks extends THREE.Object3D {
+    constructor () {
+        super()
+
+        this.block_vertex = new THREE.Object3D ();
+        this.add (this.block_vertex);
+        
+        var box_geometry = new THREE.BoxGeometry( 1.5, 1, 1.25 );
+        var box1_color = new THREE.MeshPhongMaterial ({ color: 0xCD5C5C });
+        var box_1 = new THREE.Mesh( box_geometry , box1_color);
+        box_1.position.set (5, -4, -6);
+        this.block_vertex.add( box_1 );
+
+        var box2_color = new THREE.MeshPhongMaterial ({ color: 0xB22222 });
+        var box_2 = new THREE.Mesh (box_geometry, box2_color);
+        box_2.position.set (5, -3, -6);
+        this.block_vertex.add (box_2);
+        
+        var cone_geometry = new THREE.ConeGeometry(0.7, 2, 6);
+        var cone_color = new THREE.MeshBasicMaterial( {color: 0xCD5C5C} );
+        var cone = new THREE.Mesh( cone_geometry, cone_color );
+        cone.position.set (5, -1.5, -6);
+        this.block_vertex.add(cone);
+    }
+
+    moveRight() {
+        var a = this.block_vertex.position.x;
+        a += 1;
+        this.block_vertex.position.set(a, 0, 0);
+        render();
+    }
+
+    moveLeft() {
+        var a = this.block_vertex.position.x;
+        a -= 1;
+        this.block_vertex.position.set(a, 0, 0);
+        render();
+    }
+}
+
+</script>
+</head>
+
+<body>
+    <div id="buttonarea">
+        &nbsp;
+        <h2>Move the Building Blocks:</h2>
+        <button id="Move Left">Move Left</button>
+        <button id="Move Right">Move Right</button>
+    </div>
+<!-- Container for three.js -->
+<div id="theContainer">&nbsp;</div>
+</body>
+</html>

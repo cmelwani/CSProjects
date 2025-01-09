@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<script src="https://download.affectiva.com/js/3.2.1/affdex.js"></script>
+
+<script type="text/javascript">
+
+/*
+ * Must run on a remote server, and access via https not http.
+ */
+
+// Make this global so callback functions can access
+var detector, emotion_detected
+
+window.onload = function () {
+
+      hide();
+      // SDK Needs to create video and canvas nodes in the DOM in order to function
+       // Here we are adding those nodes a predefined div.
+      var divRoot = document.getElementById("affdex_elements")
+
+      var width = 640;
+      var height = 480;
+
+      //Construct a CameraDetector and specify the image width / height and face detector mode.
+      detector = new affdex.CameraDetector(divRoot, width, height, affdex.FaceDetectorMode.LARGE_FACES);
+
+      //Enable detection of all Expressions, Emotions and Emojis classifiers.
+      detector.detectAllEmotions();
+      detector.detectAllExpressions();
+      detector.detectAllEmojis();
+      detector.detectAllAppearance();
+
+
+      //Add a callback to notify when the detector is initialized and ready for runing.
+      detector.addEventListener("onInitializeSuccess", function() {
+        log("logs", "The detector reports initialized");
+        //Display canvas instead of video feed because we want to draw the feature points on it
+        document.getElementById("face_video_canvas").style.display = "block";
+        document.getElementById("face_video").style.display = "none";
+      });
+
+      //Add a callback to notify when camera access is allowed
+      detector.addEventListener("onWebcamConnectSuccess", function() {
+        log("logs", "Webcam access allowed");
+      });
+
+      //Add a callback to notify when camera access is denied
+      detector.addEventListener("onWebcamConnectFailure", function() {
+        log("logs", "webcam denied");
+        console.log("Webcam access denied");
+      });
+
+      //Add a callback to notify when detector is stopped
+      detector.addEventListener("onStopSuccess", function() {
+        log("logs", "The detector reports stopped");
+        document.getElementById("results").innerHTML = ""
+      });
+
+
+      //Add a callback to receive the results from processing an image.
+      //The faces object contains the list of the faces detected in an image.
+      //Faces object contains probabilities for all the different expressions, emotions and appearance metrics
+      detector.addEventListener("onImageResultsSuccess", function(faces, image, timestamp) {
+        document.getElementById("results").innerHTML = ""
+        log("results", "Timestamp: " + timestamp.toFixed(2));
+        log("results", "Number of faces found: " + faces.length);
+        if (faces.length > 0) {
+          log("results", "Appearance: " + JSON.stringify(faces[0].appearance));
+          log("results", "Emotions: " + JSON.stringify(faces[0].emotions, function(key, val) {
+            return val.toFixed ? Number(val.toFixed(0)) : val;
+          }));
+          log("results", "Expressions: " + JSON.stringify(faces[0].expressions, function(key, val) {
+            return val.toFixed ? Number(val.toFixed(0)) : val;
+          }));
+          log("results", "Emoji: " + faces[0].emojis.dominantEmoji);
+          drawFeaturePoints(image, faces[0].featurePoints);
+          
+	  // Primitive UI for happy, sad, angry, and a straight face (4 emotions manually chosen)
+      if (faces[0].emotions["joy"]>75) {
+          emotion_detected = "happy";
+          detector.removeEventListener();
+          detector.stop();
+          document.getElementById("myui").innerHTML = "Happy - Choose the picture that best describes you right now or click the Spotify logo for a playlist"
+          document.getElementById("ImageButton1").innerHTML = '<img src="happy.jpg" />'
+          document.getElementById("ImageButton2").innerHTML = '<img src="celebration.jpg" />'
+          document.getElementById("Spotify").innerHTML = '<img src="spotify.png" />'
+      } else if (faces[0].emotions["sadness"]>75) {
+          emotion_detected = "sad";
+          detector.removeEventListener();
+          detector.stop();
+          document.getElementById("myui").innerHTML = "Sad - Choose the picture that best describes you right now or click the Spotify logo for a playlist"
+          document.getElementById("ImageButton1").innerHTML = '<img src="sad-not-cry.jpg" />'
+          document.getElementById("ImageButton2").innerHTML = '<img src="sad-cry.jpg" />'
+          document.getElementById("Spotify").innerHTML = '<img src="spotify.png" />'
+      } else if (faces[0].emotions["anger"]>75) {
+          emotion_detected = "mad";
+          detector.removeEventListener();
+          detector.stop();
+          document.getElementById("myui").innerHTML = "Mad - Choose the picture that best describes you right now or click the Spotify logo for a playlist"
+          document.getElementById("ImageButton1").innerHTML = '<img src="anger2.png" />'
+          document.getElementById("ImageButton2").innerHTML = '<img src="anger1.jpg" />'
+          document.getElementById("Spotify").innerHTML = '<img src="spotify.png" />'
+      } else if (faces[0].emotions["surprise"]>75) {
+          emotion_detected = "surprise";
+          detector.removeEventListener();
+          detector.stop();
+          document.getElementById("myui").innerHTML = "Surprise - Choose the picture that best describes you right now or click the Spotify logo for a playlist"
+          document.getElementById("ImageButton1").innerHTML = '<img src="shocked.jpg" />'
+          document.getElementById("ImageButton2").innerHTML = '<img src="happy-surprised.jpg" />'
+          document.getElementById("Spotify").innerHTML = '<img src="spotify.png" />'
+      } 
+    }
+});
+
+
+      //Draw the detected facial feature points on the image
+      function drawFeaturePoints(img, featurePoints) {
+	      var c = document.getElementById("face_video_canvas");
+	      if (c==null) return;
+	      var contxt = c.getContext('2d');
+
+        var hRatio = contxt.canvas.width / img.width;
+        var vRatio = contxt.canvas.height / img.height;
+        var ratio = Math.min(hRatio, vRatio);
+
+        contxt.strokeStyle = "#FFFFFF";
+        for (var id in featurePoints) {
+          contxt.beginPath();
+          contxt.arc(featurePoints[id].x,
+            featurePoints[id].y, 2, 0, 2 * Math.PI);
+          contxt.stroke();
+
+        }
+      }
+}
+
+//function executes when Start button is pushed.
+function onStart() {
+  if (detector && !detector.isRunning) {
+	  document.getElementById("results").innerHTML = ""
+	  document.getElementById("logs").innerHTML = ""
+	  detector.start();
+  }
+	log("logs", "Clicked the start button");
+}
+
+//function executes when the Stop button is pushed.
+function onStop() {
+	log("logs", "Clicked the stop button");
+	if (detector && detector.isRunning) {
+		detector.removeEventListener();
+		detector.stop();
+	}
+};
+
+//function executes when the Reset button is pushed.
+function onReset() {
+	log("logs", "Clicked the reset button");
+	if (detector && detector.isRunning) {
+		detector.reset();
+    document.getElementById("results").innerHTML = ""
+    document.getElementById("ImageButton1").innerHTML = "Not available"
+    document.getElementById("ImageButton2").innerHTML = "Not available"
+    document.getElementById("Image Button 3").innerHTML = "Not available"
+	}
+};
+
+function log (node_name, msg) {
+	document.getElementById(node_name).innerHTML += "<span>" + msg + "</span><br/>"
+}
+
+//show image 1 of different emotions
+function showImage1() {
+  log("logs", "Clicked the Image 1 button");
+  if (emotion_detected == "happy") { 
+    onHappy1();
+  } 
+  else if (emotion_detected == "sad") {
+    onSad1();
+  } 
+  else if (emotion_detected == "mad") {
+    onMad1();
+  } 
+  else if (emotion_detected == "surprise") {
+    onSurprise1();
+  }
+}
+
+//show image 2 of different emotions
+function showImage2() {
+  log("logs", "Clicked the Image 2 button");
+  if (emotion_detected == "happy") { 
+    onHappy2();
+  } 
+  else if (emotion_detected == "sad") {
+    onSad2();
+  } 
+  else if (emotion_detected == "mad") {
+    onMad2();
+  } 
+  else if (emotion_detected == "surprise") {
+    onSurprise2();
+  }
+}
+
+function Spotify() {
+  log("logs", "Clicked the Spotify button");
+  document.getElementById("spotify link").style.display = 'block'
+  if (emotion_detected == "happy") { 
+    document.getElementById("emotion 1").style.display = 'none'
+    document.getElementById("emotion 2").style.display = 'none'
+    var str = "Click here for a Spotify playlist that can make you even more happy!";
+    var result = str.link("https://open.spotify.com/playlist/6GGKTurxWFOs5PF7yrcHKn?si=wMH1SWlCR4677UnS5Z65yg");
+    document.getElementById("spotify link").innerHTML = result;
+  } 
+  else if (emotion_detected == "sad") {
+    document.getElementById('ClickMe').style.display='none'
+    document.getElementById('container').style.display='none'
+    document.getElementById('animate1').style.display='none'
+    document.getElementById('animate2').style.display='none'
+    document.getElementById('animate3').style.display='none'
+    document.getElementById('animate4').style.display='none'
+    document.getElementById('animate5').style.display='none'
+    document.getElementById('animate6').style.display='none'
+    document.getElementById('animate7').style.display='none'
+    document.getElementById('animate8').style.display='none'
+
+    document.getElementById('Upside Down').style.display='none'
+    document.getElementById('frown').style.display='none'
+    document.getElementById('Emotion Swap').style.display='none'
+    document.getElementById('smile').style.display='none'
+    var str = "Click here for a Spotify playlist that can help you feel your sadness";
+    var result = str.link("https://open.spotify.com/playlist/76SbF9lk6pCRVb8zwrz9xs?si=_qNagCD0TFKgAQPaNhlprQ");
+    document.getElementById("spotify link").innerHTML = result;
+  } 
+  else if (emotion_detected == "mad") {
+    document.getElementById('input 2').style.display='none'
+    document.getElementById('mad2').style.display='none'
+    document.getElementById('rant letter').style.display='none'
+    document.getElementById('input 1').style.display='none'
+    document.getElementById('mad1').style.display='none'
+    document.getElementById('journal instructions').style.display='none'
+    document.getElementById('demo 5').style.display='none'
+    var str = "Click here for a Spotify playlist that can help you expresses your frustration!";
+    var result = str.link("https://open.spotify.com/playlist/0HLHFfGftS8tR4pK6qxmaN?si=IeQvGo7lRMWfLzy3Iq8L7Q");
+    document.getElementById("spotify link").innerHTML = result;
+  } 
+  else if (emotion_detected == "surprise") {
+    document.getElementById("surprise link").style.display='none'
+    var str = "Click here for a Spotify playlist that relaxes your feelings of being surprised!";
+    var result = str.link("https://open.spotify.com/playlist/0xsP3FUtUTizZZW48WlG3v?si=kS2vwvAXR8Kpf0i3fFtzlA");
+    document.getElementById("spotify link").innerHTML = result;
+  }
+}
+
+/* Feeling good/generally happy */
+function onHappy1() {
+  //hiding surprise functions
+  document.getElementById("surprise link").style.display='none'
+  //hiding sad1
+  document.getElementById('ClickMe').style.display='none'
+  document.getElementById('container').style.display='none'
+  document.getElementById('animate1').style.display='none'
+  document.getElementById('animate2').style.display='none'
+  document.getElementById('animate3').style.display='none'
+  document.getElementById('animate4').style.display='none'
+  document.getElementById('animate5').style.display='none'
+  document.getElementById('animate6').style.display='none'
+  document.getElementById('animate7').style.display='none'
+  document.getElementById('animate8').style.display='none'
+  //hiding sad2
+  document.getElementById('Upside Down').style.display='none'
+  document.getElementById('frown').style.display='none'
+  document.getElementById('Emotion Swap').style.display='none'
+  document.getElementById('smile').style.display='none'
+  //hiding mad2
+  document.getElementById('input 2').style.display='none'
+  document.getElementById('mad2').style.display='none'
+  document.getElementById('rant letter').style.display='none'
+  document.getElementById('demo 5').style.display='none'
+  //hiding mad1
+  document.getElementById('input 1').style.display='none'
+  document.getElementById('mad1').style.display='none'
+  document.getElementById('journal instructions').style.display='none'
+  //hiding spotify
+  document.getElementById("spotify link").style.display = 'none'
+  //showing happy1
+  document.getElementById("emotion 1").style.display = 'block'
+  document.getElementById("emotion 2").style.display = 'block'
+  var str = "Click here for a list of happy movies!";
+  var result = str.link("https://www.oprahmag.com/entertainment/tv-movies/g25726999/best-happy-feel-good-movies/");
+  document.getElementById("emotion 1").innerHTML = result;
+
+  var str = "Click here for a video of a puppy!";
+  var result = str.link("https://www.youtube.com/watch?v=wl4m1Rqmq-Y");
+  document.getElementById("emotion 2").innerHTML = result;
+}
+
+/* Celebration */
+function onHappy2() {
+  //hiding surprise functions
+  document.getElementById("surprise link").style.display='none'
+  //hiding sad1
+  document.getElementById('ClickMe').style.display='none'
+  document.getElementById('container').style.display='none'
+  document.getElementById('animate1').style.display='none'
+  document.getElementById('animate2').style.display='none'
+  document.getElementById('animate3').style.display='none'
+  document.getElementById('animate4').style.display='none'
+  document.getElementById('animate5').style.display='none'
+  document.getElementById('animate6').style.display='none'
+  document.getElementById('animate7').style.display='none'
+  document.getElementById('animate8').style.display='none'
+  //hiding sad2
+  document.getElementById('Upside Down').style.display='none'
+  document.getElementById('frown').style.display='none'
+  document.getElementById('Emotion Swap').style.display='none'
+  document.getElementById('smile').style.display='none'
+  //hiding spotify
+  document.getElementById("spotify link").style.display='none'
+  //hiding mad2
+  document.getElementById('input 2').style.display='none'
+  document.getElementById('mad2').style.display='none'
+  document.getElementById('rant letter').style.display='none'
+  document.getElementById('demo 5').style.display='none'
+  //hiding mad1
+  document.getElementById('input 1').style.display='none'
+  document.getElementById('mad1').style.display='none'
+  document.getElementById('journal instructions').style.display='none'
+  //showing happy2
+  document.getElementById("emotion 1").style.display='block'
+  document.getElementById("emotion 2").style.display='block'
+  var str = "Click here for a confetti cake recipe!";
+  var result = str.link("https://sugarspunrun.com/funfetti-cake-scratch/");
+  document.getElementById("emotion 1").innerHTML = result;
+
+  var str = "Click here for celebration & party ideas!";
+  var result = str.link("https://www.pinterest.com/simplytodaylife/party-celebration-ideas/");
+  document.getElementById("emotion 2").innerHTML = result;
+}
+
+/* Sad (Cry) -> rain animation */
+function onSad1() {
+  //hiding surprise functions
+  document.getElementById("surprise link").style.display='none'
+  //hiding happy
+  document.getElementById("emotion 1").style.display='none'
+  document.getElementById("emotion 2").style.display='none'
+  //hiding spotify
+  document.getElementById("spotify link").style.display='none'
+  //hiding mad2
+  document.getElementById('input 2').style.display='none'
+  document.getElementById('mad2').style.display='none'
+  document.getElementById('rant letter').style.display='none'
+  document.getElementById('demo 5').style.display='none'
+  //hiding mad1
+  document.getElementById('input 1').style.display='none'
+  document.getElementById('mad1').style.display='none'
+  document.getElementById('journal instructions').style.display='none'
+  //hiding sad2
+  document.getElementById('Upside Down').style.display='none'
+  document.getElementById('frown').style.display='none'
+  document.getElementById('Emotion Swap').style.display='none'
+  document.getElementById('smile').style.display='none'
+  //showing sad1
+  document.getElementById('ClickMe').style.display='block'
+  document.getElementById('container').style.display='block'
+  document.getElementById('animate1').style.display='block'
+  document.getElementById('animate2').style.display='block'
+  document.getElementById('animate3').style.display='block'
+  document.getElementById('animate4').style.display='block'
+  document.getElementById('animate5').style.display='block'
+  document.getElementById('animate6').style.display='block'
+  document.getElementById('animate7').style.display='block'
+  document.getElementById('animate8').style.display='block'
+}
+
+/* Sad (No Cry) -> frown to smiley face animation */
+function onSad2() {
+  //hiding surprise functions
+  document.getElementById("surprise link").style.display='none'
+  //hiding happy
+  document.getElementById("emotion 1").style.display='none'
+  document.getElementById("emotion 2").style.display='none'
+  //hiding spotify
+  document.getElementById("spotify link").style.display='none'
+  //hiding mad2
+  document.getElementById('input 2').style.display='none'
+  document.getElementById('mad2').style.display='none'
+  document.getElementById('rant letter').style.display='none'
+  document.getElementById('demo 5').style.display='none'
+  //hiding mad1
+  document.getElementById('input 1').style.display='none'
+  document.getElementById('mad1').style.display='none'
+  document.getElementById('journal instructions').style.display='none'
+  //hiding sad1
+  document.getElementById('ClickMe').style.display='none'
+  document.getElementById('container').style.display='none'
+  document.getElementById('animate1').style.display='none'
+  document.getElementById('animate2').style.display='none'
+  document.getElementById('animate3').style.display='none'
+  document.getElementById('animate4').style.display='none'
+  document.getElementById('animate5').style.display='none'
+  document.getElementById('animate6').style.display='none'
+  document.getElementById('animate7').style.display='none'
+  document.getElementById('animate8').style.display='none'
+  //showing sad2
+  document.getElementById('Upside Down').style.display='block'
+  document.getElementById('Emotion Swap').style.display='block'
+  document.getElementById('frown').style.display='block'
+  document.getElementById('smile').style.display='block'
+}
+
+/* Frustration - write in text box to calm down */
+function onMad1() {
+  //hiding surprise functions
+  document.getElementById("surprise link").style.display='none'
+  //hiding happy
+  document.getElementById("emotion 1").style.display='none'
+  document.getElementById("emotion 2").style.display='none'
+  //hiding spotify
+  document.getElementById("spotify link").style.display='none'
+  //hiding sad1
+  document.getElementById('ClickMe').style.display='none'
+  document.getElementById('container').style.display='none'
+  document.getElementById('animate1').style.display='none'
+  document.getElementById('animate2').style.display='none'
+  document.getElementById('animate3').style.display='none'
+  document.getElementById('animate4').style.display='none'
+  document.getElementById('animate5').style.display='none'
+  document.getElementById('animate6').style.display='none'
+  document.getElementById('animate7').style.display='none'
+  document.getElementById('animate8').style.display='none'
+  //hiding sad2
+  document.getElementById('Upside Down').style.display='none'
+  document.getElementById('frown').style.display='none'
+  document.getElementById('Emotion Swap').style.display='none'
+  document.getElementById('smile').style.display='none'
+  //hiding mad2
+  document.getElementById('input 2').style.display='none'
+  document.getElementById('mad2').style.display='none'
+  document.getElementById('rant letter').style.display='none'
+  //showing mad1
+  document.getElementById('input 1').style.display='block'
+  document.getElementById('mad1').style.display='block'
+  document.getElementById('journal instructions').style.display='block'
+  document.getElementById('demo 5').style.display='block'
+  var x = document.getElementById('input 1').value;
+  document.getElementById('demo 5').innerHTML = x;
+}
+
+/* mad2 - rant to your best friend */
+function onMad2() {
+  //hiding surprise functions
+  document.getElementById("surprise link").style.display='none'
+  //hiding happy
+  document.getElementById("emotion 1").style.display='none'
+  document.getElementById("emotion 2").style.display='none'
+  //hiding spotify
+  document.getElementById("spotify link").style.display='none'
+  //hiding sad1
+  document.getElementById('ClickMe').style.display='none'
+  document.getElementById('container').style.display='none'
+  document.getElementById('animate1').style.display='none'
+  document.getElementById('animate2').style.display='none'
+  document.getElementById('animate3').style.display='none'
+  document.getElementById('animate4').style.display='none'
+  document.getElementById('animate5').style.display='none'
+  document.getElementById('animate6').style.display='none'
+  document.getElementById('animate7').style.display='none'
+  document.getElementById('animate8').style.display='none'
+  //hiding sad2
+  document.getElementById('Upside Down').style.display='none'
+  document.getElementById('frown').style.display='none'
+  document.getElementById('Emotion Swap').style.display='none'
+  document.getElementById('smile').style.display='none'
+  //hiding mad1
+  document.getElementById('input 1').style.display='none'
+  document.getElementById('mad1').style.display='none'
+  document.getElementById('journal instructions').style.display='none'
+  //showing mad2
+  document.getElementById('input 2').style.display='block'
+  document.getElementById('mad2').style.display='block'
+  document.getElementById('rant letter').style.display='block'
+  document.getElementById('demo 5').style.display='block'
+  var x = document.getElementById('input 2').value;
+  document.getElementById('demo 5').innerHTML = x;
+}
+
+/* Shocked */
+function onSurprise1() {
+  //hiding happy
+  document.getElementById("emotion 1").style.display='none'
+  document.getElementById("emotion 2").style.display='none'
+  //hiding sad1
+  document.getElementById('ClickMe').style.display='none'
+  document.getElementById('container').style.display='none'
+  document.getElementById('animate1').style.display='none'
+  document.getElementById('animate2').style.display='none'
+  document.getElementById('animate3').style.display='none'
+  document.getElementById('animate4').style.display='none'
+  document.getElementById('animate5').style.display='none'
+  document.getElementById('animate6').style.display='none'
+  document.getElementById('animate7').style.display='none'
+  document.getElementById('animate8').style.display='none'
+  //hiding sad2
+  document.getElementById('Upside Down').style.display='none'
+  document.getElementById('frown').style.display='none'
+  document.getElementById('Emotion Swap').style.display='none'
+  document.getElementById('smile').style.display='none'
+  //hiding spotify
+  document.getElementById("spotify link").style.display = 'none'
+  //hiding mad2
+  document.getElementById('input 2').style.display='none'
+  document.getElementById('mad2').style.display='none'
+  document.getElementById('rant letter').style.display='none'
+  document.getElementById('demo 5').style.display='none'
+  //hiding mad1
+  document.getElementById('input 1').style.display='none'
+  document.getElementById('mad1').style.display='none'
+  document.getElementById('journal instructions').style.display='none'
+
+  document.getElementById("surprise link").style.display='block'
+  var str = "Click here for a 3D Spooky Surprise!";
+  var result = str.link("https://drive.google.com/file/d/1d07OGsXU89RVX7WK4sBTDdAa5cH6kSvR/view?usp=sharing");
+  document.getElementById("surprise link").innerHTML = result;
+}
+
+/* Happy Surprised */
+function onSurprise2() {
+  //hiding happy
+  document.getElementById("emotion 1").style.display='none'
+  document.getElementById("emotion 2").style.display='none'
+  //hiding sad1
+  document.getElementById('ClickMe').style.display='none'
+  document.getElementById('container').style.display='none'
+  document.getElementById('animate1').style.display='none'
+  document.getElementById('animate2').style.display='none'
+  document.getElementById('animate3').style.display='none'
+  document.getElementById('animate4').style.display='none'
+  document.getElementById('animate5').style.display='none'
+  document.getElementById('animate6').style.display='none'
+  document.getElementById('animate7').style.display='none'
+  document.getElementById('animate8').style.display='none'
+  //hiding sad2
+  document.getElementById('Upside Down').style.display='none'
+  document.getElementById('frown').style.display='none'
+  document.getElementById('Emotion Swap').style.display='none'
+  document.getElementById('smile').style.display='none'
+  //hiding spotify
+  document.getElementById("spotify link").style.display = 'none'
+  //hiding mad2
+  document.getElementById('input 2').style.display='none'
+  document.getElementById('mad2').style.display='none'
+  document.getElementById('rant letter').style.display='none'
+  document.getElementById('demo 5').style.display='none'
+  //hiding mad1
+  document.getElementById('input 1').style.display='none'
+  document.getElementById('mad1').style.display='none'
+  document.getElementById('journal instructions').style.display='none'
+
+  document.getElementById("surprise link").style.display='block'
+  var str = "Click here for a 3D Celebratory Surprise!";
+  var result = str.link("https://drive.google.com/file/d/1kPaqkZZhT7-d0jZuSdheWvUPt_Mh4O8B/view?usp=sharing");
+  document.getElementById("surprise link").innerHTML = result;
+   
+}
+
+function hide() {
+  //hiding mad1 functions
+  document.getElementById('input 1').style.display='none'
+  document.getElementById('mad1').style.display='none'
+  document.getElementById('journal instructions').style.display='none'
+  //hiding mad2 functions
+  document.getElementById('input 2').style.display='none'
+  document.getElementById('mad2').style.display='none'
+  document.getElementById('rant letter').style.display='none'
+  document.getElementById('demo 5').style.display='none'
+  //hiding sad1 functions
+  document.getElementById('ClickMe').style.display='none'
+  document.getElementById('container').style.display='none'
+  document.getElementById('animate1').style.display='none'
+  document.getElementById('animate2').style.display='none'
+  document.getElementById('animate3').style.display='none'
+  document.getElementById('animate4').style.display='none'
+  document.getElementById('animate5').style.display='none'
+  document.getElementById('animate6').style.display='none'
+  document.getElementById('animate7').style.display='none'
+  document.getElementById('animate8').style.display='none'
+  //hiding sad2 functions
+  document.getElementById('Upside Down').style.display='none'
+  document.getElementById('frown').style.display='none'
+  document.getElementById('Emotion Swap').style.display='none'
+  document.getElementById('smile').style.display='none'
+  //hiding happy functions
+  document.getElementById("emotion 1").style.display='none'
+  document.getElementById("emotion 2").style.display='none'
+  //hiding surprise functions
+  document.getElementById("surprise link").style.display='none'
+}
+
+function myMove() {
+  var elem = document.getElementById("animate1");   
+  var pos = 0;
+  var id = setInterval(frame, 10);
+  function frame() {
+    if (pos == 350) {
+      clearInterval(id);
+    } else {
+      elem2.style.left = 50 + 'px';
+      pos++; 
+      elem.style.top = pos + 'px'; 
+    }
+  }
+  
+  var elem2 = document.getElementById("animate2");   
+  var pos2 = 0;
+  var id2 = setInterval(frame2, 10);
+  function frame2() {
+    if (pos2 == 350) {
+      clearInterval(id2);
+    } else {
+      elem2.style.right = 100 + 'px'; 
+      pos2 = pos2 + 2; 
+      elem2.style.top = pos2 + 'px'; 
+    }
+  }
+
+  var elem3 = document.getElementById("animate3");   
+  var pos3 = 0;
+  var id3 = setInterval(frame3, 10);
+  function frame3() {
+    if (pos3 == 350) {
+      clearInterval(id3);
+    } else {
+      elem3.style.left = 150 + 'px'; 
+      pos3 = pos3 + 1; 
+      elem3.style.top = pos3 + 'px'; 
+    }
+  }
+
+  var elem4 = document.getElementById("animate4");   
+  var pos4 = 0;
+  var id4 = setInterval(frame4, 10);
+  function frame4() {
+    if (pos4 == 350) {
+      clearInterval(id4);
+    } else {
+      elem4.style.left = 200 + 'px'; 
+      pos4 = pos4 + 2; 
+      elem4.style.top = pos4 + 'px'; 
+    }
+  }
+
+  var elem5 = document.getElementById("animate5");   
+  var pos5 = 0;
+  var id5 = setInterval(frame5, 10);
+  function frame5() {
+    if (pos5 == 350) {
+      clearInterval(id5);
+    } else {
+      elem5.style.left = 250 + 'px'; 
+      pos5++; 
+      elem5.style.top = pos5 + 'px'; 
+    }
+  }
+
+  var elem6 = document.getElementById("animate6");   
+  var pos6 = 0;
+  var id6 = setInterval(frame6, 10);
+  function frame6() {
+    if (pos6 == 350) {
+      clearInterval(id6);
+    } else {
+      elem6.style.left = 300 + 'px'; 
+      pos6 = pos6 + 2; 
+      elem6.style.top = pos6 + 'px'; 
+    }
+  }
+
+  var elem7 = document.getElementById("animate7");   
+  var pos7 = 0;
+  var id7 = setInterval(frame7, 10);
+  function frame7() {
+    if (pos7 == 350) {
+      clearInterval(id7);
+    } else {
+      elem7.style.left = 110 + 'px'; 
+      pos7 = pos7 + 2; 
+      elem7.style.top = pos7 + 'px'; 
+    }
+  }
+
+  var elem8 = document.getElementById("animate8");   
+  var pos8 = 0;
+  var id8 = setInterval(frame8, 10);
+  function frame8() {
+    if (pos8 == 350) {
+      clearInterval(id8);
+    } else {
+      elem8.style.left = 330 + 'px'; 
+      pos8++; 
+      elem8.style.top = pos8 + 'px'; 
+    }
+  }
+
+}
+
+</script>
+
+<style>
+  #container {
+    width: 400px;
+    height: 400px;
+    position: relative;
+    background: rgb(206, 206, 206);
+  }
+  #animate1 {
+    width: 20px;
+    height: 40px;
+    position: absolute;
+    background-color: rgba(33, 152, 199, 0.644);
+    border-radius: 80%;
+  }
+  #animate2 {
+    width: 20px;
+    height: 40px;
+    position: absolute;
+    background-color: rgb(29, 180, 240);
+    border-radius: 80%;
+  }
+  #animate3 {
+    width: 20px;
+    height: 40px;
+    position: absolute;
+    background-color: rgb(66, 143, 173);
+    border-radius: 80%;
+  }
+  #animate4 {
+    width: 20px;
+    height: 40px;
+    position: absolute;
+    background-color: rgb(45, 193, 219);
+    border-radius: 80%;
+  }
+  #animate5 {
+    width: 20px;
+    height: 40px;
+    position: absolute;
+    background-color: rgb(45, 170, 219);
+    border-radius: 80%;
+  }
+  #animate6 {
+    width: 20px;
+    height: 40px;
+    position: absolute;
+    background-color: rgb(33, 158, 230);
+    border-radius: 80%;
+  }
+  #animate7 {
+    width: 20px;
+    height: 40px;
+    position: absolute;
+    background-color: rgb(33, 158, 230);
+    border-radius: 80%;
+  }
+  #animate8 {
+    width: 20px;
+    height: 40px;
+    position: absolute;
+    background-color: rgb(66, 143, 173);
+    border-radius: 80%;
+  }
+  #start {
+    background-color: rgb(54, 54, 54); 
+    border: none;
+    color: white;
+    padding: 15px 25px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 12px;
+  }
+  #stop {
+    background-color: rgb(54, 54, 54);
+    border: none;
+    color: white;
+    padding: 15px 25px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 12px;
+  }
+  #reset {
+    background-color: rgb(54, 54, 54); 
+    border: none;
+    color: white;
+    padding: 15px 25px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 12px;
+  }
+  #ImageButton1 {
+    background-color: rgb(54, 54, 54); 
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+    border-radius: 12px;
+  }
+  #ImageButton2 {
+    background-color: rgb(54, 54, 54); 
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+    border-radius: 12px;
+  }
+  #Spotify {
+    background-color: rgb(54, 54, 54); 
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+    border-radius: 12px;
+  }
+  #frown {
+    background-color: rgb(54, 54, 54); 
+    border: none;
+    color: white;
+    padding: 8px 15px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 13px;
+    border-radius: 12px;
+  }
+  #smile {
+    background-color: rgb(54, 54, 54); 
+    border: none;
+    color: white;
+    padding: 8px 15px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 13px;  
+    border-radius: 12px;
+  }
+  #ClickMe {
+    background-color: rgb(54, 54, 54); 
+    border: none;
+    color: white;
+    padding: 8px 30px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 13px;  
+    border-radius: 12px;
+  }
+  #mad1 {
+    background-color: rgb(54, 54, 54); 
+    border: none;
+    color: white;
+    padding: 8px 30px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 13px;  
+    border-radius: 12px;
+  }
+  #mad2 {
+    background-color: rgb(54, 54, 54); 
+    border: none;
+    color: white;
+    padding: 8px 30px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 13px;  
+    border-radius: 12px; 
+  }
+
+</style>
+  
+</head>
+
+<body>
+  <div>
+    <div>
+      <body style="background-color:rgb(228, 253, 248); font-family:Trebuchet MS; color:rgb(68, 68, 68);"></body>
+      <h3 style="text-align: center; font-size:250%;">Affectiva: Emotion Recognition Software</h3>
+      <p>
+        <strong>Instructions:</strong>
+        </br>
+        Press the start button to start the detector.
+        <br/> When a face is detected, the probabilities of the different emotions are written to the DOM (Document Object Model).
+        <br/> Press the stop button to end the detector.
+      </p>
+      <strong>NOTE:</strong>
+        Happy, Sad, Mad, and Surprised are the only emotions that will generate reactions. 
+      </p>
+        <strong>Emotion Tracking Results:</strong>
+        <div id="results" style="word-wrap:break-word;"></div>
+      </div>
+    </div>
+
+    <div>
+      <div id="affdex_elements" style="width:680px;height:480px; margin: auto;"></div>
+      <br/>
+      <button id="start" onclick="onStart()">Start</button>
+      <button id="stop" onclick="onStop()">Stop</button>
+      <button id="reset" onclick="onReset()">Reset</button>
+      <div>
+        <div>
+	  <br/><br/>
+          <strong>Emotion Response:</strong>
+	  <br/><br/>
+    <div id="myui" style="color:rgb(31, 165, 136);"></div>
+    <button id="ImageButton1" onclick="showImage1()">Not Available</button>
+    <button id="ImageButton2" onclick="showImage2()">Not Available</button>
+    <button id="Spotify" onclick="Spotify()">Not Available</button>
+    <p id="emotion 1"></p>
+    <p id="emotion 2"></p>
+    <p id="spotify link"></p>
+    <p id="surprise link"></p>
+        </div>
+        <div>
+          <p id="Upside Down">Turn that Frown Upside Down!</p>
+          <button id="frown" onclick="document.getElementById('Emotion Swap').src='frown.png'">Frown</button>
+          <img id="Emotion Swap" src="frown.png" style="width:100px">
+          <button id="smile" onclick="document.getElementById('Emotion Swap').src='smiley.png'">Smile</button>
+        </div>
+        <div>
+          <p id="journal instructions"> Let out those feelings of frustration in a journal entry!</p> 
+          <input type="text" id="input 1" value="insert text here">
+          <br/>
+          <button id="mad1" onclick="onMad1()">Confirm your journal entry</button>
+
+          <p id="rant letter"> Take that anger out by writing a rant to your best friend</p> 
+          <input type="text" id="input 2" value="insert text here">
+          <br/>
+          <button id="mad2" onclick="onMad2()">Confirm your letter</button>
+          <p id="demo 5"></p>
+        </div>
+        <p><button id= "ClickMe" onclick="myMove()">Run Rain Simulation!</button></p> 
+        <div id ="container">
+          <div id ="animate1"></div>
+          <div id ="animate2"></div>
+          <div id ="animate3"></div>
+          <div id ="animate4"></div>
+          <div id ="animate5"></div>
+          <div id ="animate6"></div>
+          <div id ="animate7"></div>
+          <div id ="animate8"></div>
+        </div>
+        <div>
+          <strong>Detector Log Msgs</strong>
+	  <div id="logs"></div>
+        </div>
+    </div>
+  </div>
+</body>
+</html>

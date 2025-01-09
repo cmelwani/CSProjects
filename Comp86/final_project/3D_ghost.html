@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+
+<title>Comp 86 Nonwimp 2: Ghost world</title>
+
+<script src="http://threejs.org/build/three.min.js"></script>
+<script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
+<script src="http://threejs.org/examples/js/loaders/OBJLoader.js"></script>
+<script src="boiler.js"></script>
+<script src="lights.js"></script>
+
+<script type="text/javascript">
+
+var myScene;
+
+function makeSceneGraph () {
+    myScene = new Scene();
+	scene.add (myScene);
+	lights = new Lights() // Now in a separate lights.js file
+}
+
+class Scene extends THREE.Object3D {
+    constructor () {
+        super()
+        
+        //Putting the 3 ghosts onto the scene
+        this.ghosts = [];
+        this.ghosts[0] = new Ghost();
+        this.ghosts[0].position.set(0, -5, -10);
+        this.add(this.ghosts[0]);
+
+        this.ghosts = [];
+        this.ghosts[1] = new Ghost();
+        this.ghosts[1].position.set(-5, -5, -16);
+        this.add(this.ghosts[1]); 
+           
+        this.ghosts = [];
+        this.ghosts[2] = new Ghost();
+        this.ghosts[2].position.set(5, -5, -16);
+        this.add(this.ghosts[2]);
+        
+        //Putting the board onto the scene
+        var board = new Board ();
+        this.add(board);
+        
+    }
+}
+
+class Ghost extends THREE.Object3D {
+    constructor () {
+        super ()
+
+        //head of the ghost 
+        var head_geometry = new THREE.SphereGeometry(2, 20, 20, 0, Math.PI * 2, 0, Math.PI);
+        var color = new THREE.MeshPhongMaterial ({ color: 0xFFFFFF, shininess: 60 });
+        var head = new THREE.Mesh(head_geometry, color);
+        head.position.set(0, 3+1/2, 0);
+        this.add(head);
+
+        //creating the body of the ghost
+        var body_geometry = new THREE.BoxGeometry(3.3, 4 ,2);
+        var color_1 = new THREE.MeshPhongMaterial ({ color: 0xFFFFFF, shininess: 60 });
+        var body = new THREE.Mesh (body_geometry, color_1);
+        body.position.set(0, 1 , 0);
+        this.add(body);
+        
+        //Cloth folds of ghost
+        var cone_geometry = new THREE.ConeGeometry(0.7, 1, 4);
+        var cone_color = new THREE.MeshBasicMaterial( {color: 0xFFFFFF} );
+        var cone = new THREE.Mesh(cone_geometry, cone_color );
+        cone.position.set (0, -1.5, 0.7);
+        cone.rotation.set (0, 0, Math.PI);
+        this.add(cone);
+
+        var cone2 = new THREE.Mesh(cone_geometry, cone_color );
+        cone2.position.set (1, -1.5, 0.7);
+        cone2.rotation.set (0, 0, Math.PI);
+        this.add(cone2);
+
+        var cone3 = new THREE.Mesh(cone_geometry, cone_color );
+        cone3.position.set (-1, -1.5, 0.7);
+        cone3.rotation.set (0, 0, Math.PI);
+        this.add(cone3);
+
+        //Eyes of ghost
+        var eye_geometry = new THREE.SphereGeometry(0.3, 32, 32, 0, Math.PI * 2, 0, Math.PI);
+        var color_face = new THREE.MeshPhongMaterial ({ color: 0x000000, shininess: 60 });
+
+        var left_eye = new THREE.Mesh(eye_geometry, color_face);
+        left_eye.position.set(-0.6, 3+0.6, 2);
+        this.add(left_eye);
+        
+        var right_eye = new THREE.Mesh(eye_geometry, color_face);
+        right_eye.position.set(0.6, 3+0.6, 2);
+        this.add(right_eye);
+
+        //Mouth of ghost
+        var mouth_geometry = new THREE.SphereGeometry(0.5, 32, 32, 0, Math.PI * 2, 0, Math.PI);
+        var mouth = new THREE.Mesh(mouth_geometry, color_face);
+        mouth.position.set(0, 3, 1.55);
+        this.add(mouth);
+    }
+}
+
+class Board extends THREE.Object3D {
+    constructor() {
+        super()
+
+        //Board/platform for ghosts
+        var board_geometry = new THREE.BoxGeometry(30, 1, 20);
+        var board_color = new THREE.MeshPhongMaterial ({ color: 0xFF9000, shininess: 60 });
+        var board = new THREE.Mesh( board_geometry , board_color );
+        board.position.set(0, -12, -15)
+        this.add( board );
+        
+    }
+}
+
+</script>
+</head>
+
+<body>
+    <div id="buttonarea">
+        &nbsp;
+        <h2>BOO!!</h2>
+    </div>
+<!-- Container for three.js -->
+<div id="theContainer">&nbsp;</div>
+</body>
+</html>

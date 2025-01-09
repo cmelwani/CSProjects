@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+
+<title>Comp 86 Nonwimp 2: Balloon world</title>
+
+<script src="http://threejs.org/build/three.min.js"></script>
+<script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
+<script src="http://threejs.org/examples/js/loaders/OBJLoader.js"></script>
+<script src="boiler.js"></script>
+<script src="lights.js"></script>
+
+<script type="text/javascript">
+
+var myScene;
+
+function makeSceneGraph () {
+    myScene = new Scene();
+	scene.add (myScene);
+	lights = new Lights() // Now in a separate lights.js file
+}
+
+class Scene extends THREE.Object3D {
+    constructor () {
+        super()
+        
+        //Putting the 3 balloons onto the scene
+        this.balloons = [];
+        this.balloons[0] = new Balloon();
+        this.balloons[0].position.set(0, -5, -10);
+        this.add(this.balloons[0]);
+
+        this.balloons = [];
+        this.balloons[1] = new Balloon();
+        this.balloons[1].position.set(-5, -5, -16);
+        this.add(this.balloons[1]); 
+           
+        this.balloons = [];
+        this.balloons[2] = new Balloon();
+        this.balloons[2].position.set(5, -5, -16);
+        this.add(this.balloons[2]);
+        
+        //Putting the board onto the scene
+        var board = new Board ();
+        this.add(board);
+    }
+}
+
+class Balloon extends THREE.Object3D {
+    constructor () {
+        super ()
+
+        //sphere of balloon
+        var balloon_geometry = new THREE.SphereGeometry(3, 32, 32, 0, Math.PI * 2, 0, Math.PI);
+        var color = new THREE.MeshPhongMaterial ({ color: 0xF91700, shininess: 60 });
+        var balloon = new THREE.Mesh(balloon_geometry, color);
+        balloon.position.set(0, 1+7, 0);
+        this.add(balloon);
+
+        //string of balloon
+        var string_geometry = new THREE.CylinderGeometry (.05, .05, 10, 20, 20, false);
+        var color_1 = new THREE.MeshPhongMaterial ({ color: 0x000000 });
+        var column = new THREE.Mesh(string_geometry, color_1 );
+        column.position.set (0, 1.0 + 2.5/2.0, 0);
+        this.add (column);
+    }
+}
+
+class Board extends THREE.Object3D {
+    constructor() {
+        super()
+
+        //Board/platform for balloons
+        var board_geometry = new THREE.BoxGeometry(30, 1, 20);
+        var board_color = new THREE.MeshPhongMaterial ({ color: 0x01FEFE, shininess: 60 });
+        var board = new THREE.Mesh( board_geometry , board_color );
+        board.position.set(0, -8, -15)
+        this.add( board );
+        
+    }
+}
+
+</script>
+</head>
+
+<body>
+    <div id="buttonarea">
+        &nbsp;
+        <h2>Surprise! You got 3D Balloons!</h2>
+    </div>
+<!-- Container for three.js -->
+<div id="theContainer">&nbsp;</div>
+</body>
+</html>

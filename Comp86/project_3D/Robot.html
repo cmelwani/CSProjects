@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+
+<title>Comp 86 example: Robot, without animation</title>
+
+<script src="http://threejs.org/build/three.min.js"></script>
+<script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
+<script src="http://threejs.org/examples/js/loaders/OBJLoader.js"></script>
+<script src="boiler.js"></script>
+<script src="lights.js"></script>
+
+<script type="text/javascript">
+
+function makeSceneGraph () {
+	scene.add (new Scene())
+	lights = new Lights() // Now in a separate lights.js file
+}
+
+class Scene extends THREE.Object3D {
+    constructor () {
+	super()
+
+	// First robot, position = WC origin to robot local origin
+	var r = new Robot ()
+	r.position.set (0, -5, -10)
+	this.add (r)
+
+	// A second robot, different local origin
+	r = new Robot ()
+	r.position.set (-5, -5, -20)
+	r.rotation.set (0, -20 * Math.PI/180, 0)
+	this.add (r)
+    }
+}
+
+/*
+ * We make a Robot out of other library objects
+ */
+class Robot extends THREE.Object3D {
+    constructor () {
+	super ()
+
+	/*
+         * Initialize some Materials we will be using
+	 */
+	var platform = new THREE.MeshPhongMaterial ({ color: 0x4c4c33 })
+	var pants = new THREE.MeshPhongMaterial ({ color: 0x0c0c4c })
+	var shirt = new THREE.MeshPhongMaterial ({ color: 0xffcc80 })
+	var skin = new THREE.MeshPhongMaterial ({ color: 0xffd9b3, shininess: 60 })
+
+	/*
+	 * The base
+	 */
+	// The bottom flat part of base
+	var base = new THREE.Mesh (
+		new THREE.BoxGeometry (1.5, 1, 1.25), platform)
+	// (transform = local offset for center of box, ie 0.5 radius)
+	base.position.set (0, 1/2., 0)
+	this.add (base)
+
+	// The column
+	var column = new THREE.Mesh (
+		new THREE.CylinderGeometry (.4, .4, 2.5, 32, 32, false), pants)
+	column.position.set (0, 1.0 + 2.5/2.0, 0)
+	this.add (column)
+
+	/*
+	 * Upper body
+	 */
+
+	// Just a tranform node, no geometry
+	// ie root node for the rest of the upper body,
+	// and then work from its local origin
+	var upperbody = new THREE.Object3D ()
+	upperbody.position.set (0, 1+2.5, 0)
+	this.add (upperbody)
+
+	// Trunk
+	var trunk = new THREE.Mesh (
+		new THREE.BoxGeometry (2, 3, 2), shirt)
+	trunk.position.set (0, 3/2., 0)
+	upperbody.add (trunk)
+
+	// Head
+	var head = new THREE.Mesh (
+		new THREE.BoxGeometry (1, 1, 1), skin)
+	head.position.set (0, 3 + 1/2., 0)
+	upperbody.add (head)
+
+	// Right armhand
+	var rightArmHand = new ArmHand (shirt, skin)
+	rightArmHand.position.set (-1.25, 3, 0)
+	upperbody.add (rightArmHand)
+
+	// Left armhand
+	var leftArmHand = new ArmHand (shirt, skin)
+	leftArmHand.position.set (1.25, 3, 0)
+	leftArmHand.rotation.set (0, Math.PI, 0)
+	upperbody.add (leftArmHand)
+    }
+}
+
+/*
+ * Separate object that makes the Arm + Hand assembly
+ */
+class ArmHand extends THREE.Object3D {
+    constructor (shirt, skin) {
+	super ()
+
+	// Arm
+	var arm = new THREE.Mesh (
+		new THREE.BoxGeometry (0.5, 2.5, 0.5), shirt)
+	arm.position.set (0, -1.25, 0)
+	this.add (arm)
+
+	// Finger
+	var finger = new THREE.Mesh (
+		new THREE.BoxGeometry (0.1, .5, .5), skin)
+	finger.position.set (-0.25+0.05, -2.5-0.25, 0)
+	this.add (finger)
+
+	// Thumb
+	var thumb = new THREE.Mesh (
+		new THREE.BoxGeometry (0.1, .5, .5), skin)
+	thumb.position.set (0.25-0.1-0.05, -2.5-0.25, 0.)
+	this.add (thumb)
+    }
+}
+
+</script>
+</head>
+
+<body>
+<!-- Container for three.js -->
+<div id="theContainer">&nbsp;</div>
+</body>
+</html>

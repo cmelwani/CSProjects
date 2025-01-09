@@ -1,0 +1,142 @@
+HOW TO USE A TIMER DURING ANIMATION: 
+
+Main: 
+Timer timer = new Timer (100, this); --> the 100 stands for the time intervals between the bits of animation
+Create a ActionEvent function and inside call: 
+model.tick();
+model.update();
+
+TimerButton class that handles animation -- include:
+private Timer timer;
+you want to pass in the timer and a boolean that is the animation trigger. 
+if its your start button timer.start(); and if its your stop button timer.stop();
+
+A way to have the start and stop animation buttons be connected to each other. Where
+if the start button is used, the stop button is disabled and vice versa:
+private TimerButton companionButton; --> can have an instance of the class within the class
+
+In constructer: 
+if(animationTrigger) {
+    setEnabled(false);
+}
+
+public void addCompanionButton(TimerButton companionButton) {
+    this.companionButton = companionButton;
+}
+setEnabled(false);
+companionButton.setEnabled(true);
+
+in main:
+startButton.addCompanionButton(stopButton);
+startButton.addCompanionButton(startButton);
+
+
+Model class: 
+public void tick() { 
+    have a for loop that iterates through your vehicle array and inside that call the 
+    tick function of each vehicle. 
+}
+
+Vehicle class: 
+public void tick() {
+    xPos += 2; --> udpating the position at every tick. 
+}
+
+MOUSE PICKING/CLICKING:
+
+CANVAS:
+1. Canvas class should implement MouseListener
+2. Need to have all 5 abstract methods of MouseListener --> mousePressed, mouseReleased.. etc
+3. addMouseListener(this) --> in canvas constructor
+
+public void mousePressed(MouseEvent e) {
+    System.out.println("Clicked On" + e.getX() + " " + e.getY());
+    model.correlate(e.getX(), e.getY());
+}
+
+MODEL: 
+create a Vehicle object: private Vehicle selectedVehicle;
+
+public void correlate(int x, int y) {
+    for(that goes through your vehicles) {
+        if(vehiclesList.get(i).pickCorrelation(x, y)) {
+            if(selectedVehicle != null) {
+                selectedVehicle.restoreDefaultColor(); --> a method in the vehicle class
+            }
+            selectedVehicle = vehicleList.get(i);
+            selectedVehicle.setColor(Color.magenta); --> specifically done to her code
+            break;
+        }
+    }
+}
+
+private int genRandomNumber(int max, int min) {
+int randomNum = (int)Math.random() * (max - min + 1) + min);
+}
+
+VEHICLE:
+public boolean pickCorrelation(int x, int y) {
+    x where we clicked on
+    xPos is where the vehicle started
+    size = diameter of the shape (whether it be a circle or rectangle)
+    if(x >= xPos && x <= xPos + size) {
+        if(y >= yPos && y <= yPos + size) {
+            return true;
+        }
+    }
+    return false;
+}
+
+- use the height and width of your vehicle and then use a bounding box.
+
+
+HOW TO DO COLLISIONS:
+
+MODEL Class: 
+
+//check for collisions after every repaint
+purpose: check for collisions between meteor and spaceship
+
+private void HIT_Model() { 
+    List<Meteor> meteors = shower.getMeteors(); 
+    for( Meteor mt: meteors) {
+        if(vehicles.contains(mt)) { //contains is a method of list
+            //have to check x and y coordinates to see if the two objects collided
+            int m_x = mt.getX(); --> getX() and getY() are functions created in the vehicle class
+            int m_y = mt.getY();
+            //spaceship is an instance of a spaceship class created in model
+            int s_x = spaceship.getX();
+            int s_y = spaceship.getY();
+
+            int delta_x = Math.abs(s_x - m_x); 
+            //getting the absolute value between the x coordinates of meteor and spaceship
+            int delta_y = Math.abs(s_y - m_y);
+            //getting the absolute value between the y coordinates of meteor and spaceship
+            if(delta_x <= [some_value] && delta_y <= [some_value]) {
+                //the some_value is the bounds in which the two vehicles would collide. it is an integer
+                vehicles.get(vehicles.indexOf(mt)).setVisible(false); 
+                spaceship.hit();
+                if(spaceship.getHealth() == 0) {
+                   GAME_OVER();
+                }
+            }
+            //this code doesn't work because you need bounds
+            // if(m_x == s_x && m_y == s_y) {
+                // System.out.print("A Collision Happened");
+            // }
+        }
+    }
+}
+
+private void GAME_OVER() {
+    onPause = true;
+    showMessage("GAME OVER... YOU LOSE");
+}
+
+how to check if two vehicles in the same list are colliding: 
+- you need a nested for loop 
+- and you need to have an index?
+
+
+HOW TO ZOOM & PAN:
+
