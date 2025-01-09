@@ -1,0 +1,107 @@
+/**********************************************************
+* HW3: Metro Simulator
+* Comp 15
+* README
+* CHERYL MELWANI (cmelwa01)
+* Feb 12, 2020
+*********************************************************/
+
+Compile/run:
+     - Compile using
+            make MetroSim
+     - run executable with
+            ./MetroSim stationsFile passFile [commands]
+
+
+Program Purpose:
+
+This homework assignment handles a running train to accomodate
+passengers arriving/departing a metro. Learn how to design and
+modularize code and work with documented libraries.
+
+
+Acknowledgements:
+I got help during Comp 15 Office Hours by multiple TA's. They helped walk me
+through the concepts, how to plan an effective data structure and how to
+work the output file. Furthermore, the TA's also helped me figure out the
+logic for the metroMove query since I was having trouble visualizing how the
+train was supposed to move from one station to the next. I also discussed the
+beginning data structure with friends and used the internet to see what vector
+classes I could use for the passenger class. Lastly, I used Professor Sheldon's
+File I/O review to help me read in commands from the test_commands file.
+
+Files:
+
+main.cpp:
+     STUDENT TO-DO: Main file should be short and handle simple driver
+     functions such as reading in files.
+
+MetroSim.cpp:
+     STUDENT TO-DO: Implementation of MetroSim class.  Main
+     functionality of running the Metro Simulation, should be able to
+     move trains and deal with passengers going on/off the train.
+
+MetroSim.h:
+        STUDENT TO-DO: Interface of MetroSim class.
+
+stations.txt:
+        an example file containing a list of stations.
+
+test_commands.txt:
+        sample list of commands that you could give to the simulator
+
+the_metroSim:
+        reference implementation for students to see how
+
+
+Note:  the program should handle all cases.
+
+Data Structures:
+The data structures I combined were a vector, a queue, a struct, and a class.
+My passenger queue was a vector of passenger structs that the Professor provided
+for us. I created a passenger queue class to implement the queue properly.
+My train was a vector of passenger queues (as outlined on the spec). Each
+station was a struct with a name, and a passenger queue. Within my Metro Sim.cpp
+I had two vectors. One of passenger queues called train, and the other of
+station structs called station_array. The station_array vector would keep track
+of all the number of stations and how many passengers each station had. The
+passenger queue called train would keep track of how many passengers are
+currently on the train. Figuring out this distinction between the Passengers on
+the train and on the station was vital to making the simulation work. I had
+to make sure to keep an index called that kept track of which station the
+train was currently on in order to move the train along the stations properly
+and in order to print the simulation properly.
+
+Testing:
+The way I went about testing this simulation was in parts. The first part I
+tested was whether I was reading in the stations file properly. Every time I
+read into the station_array vector, I printed out what was being read in
+to make sure the string stream was being used properly to read in information
+from the file. The next thing I tested was whether adding a passenger was
+working or not. I created a print function to make sure that I was adding
+a passenger to each station properly. The next thing I tested was the metro
+move function. This function I tested in parts. First part was enqueuing on
+to the train and dequeuing off the station. Once that part worked with printing,
+then I went on to trying to figure out how to dequeue people off the train.
+While working on this part of the simulation, I got a segfault because I
+wasn't actually filling in the train vector with multiple passenger queues
+but rather left it empty. I also got an error with my indexes being where
+the passenger was being dequeued at the wrong station. Once the indexes were all
+set properly and all of that was working. I planned metro finish in my head.
+Lastly, once I for sure knew all of my functions were working, I started working
+on reading from the input file and outputting the statement to the output file.
+I had a lot of errors during this time where my spacing was off during printing,
+I wasn't reading the data from the input file properly. I had to put a bunch
+of cout statements to see where the reading in was not working. Once that
+happened, I worked on reading in from the user input and finally, just made
+sure that the entire program worked.
+
+Here describe the following: process of testing (unit tests), mention
+of bugs you encountered while testing, mention of testing on inputs of
+different sizes and edge cases, good description of base cases you
+considered while testing. Demonstrate a methodical approach to
+testing.  This section of your REAMDE should be very thorough for
+homework assignments.
+
+Note: This homework comes partially implemented, but student must also
+create the driver and add class functionality.
