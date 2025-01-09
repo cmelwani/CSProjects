@@ -1,4 +1,0 @@
-list
-dist v2 v4
-path v5 v7 2
-quit
