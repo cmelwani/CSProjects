@@ -1,0 +1,149 @@
+A. The title of the homework and the author's name (you)
+
+Road Trip
+Cheryl Melwani (cmelwa01)
+
+B. The purpose of the program
+
+The purpose of this program is to create a class that uses a directed graph
+data structure that can find routes between two different places. The program
+can also fulfill other commands such as printing out the list of "cities" or
+vertices or finding the geographical distance between two places or finding
+the number of paths between two places. The user can dictate how many paths
+they want to be found.
+
+C. Acknowledgements for any help you received
+
+I discussed the planning for this project with a friend where we went over what
+data structures are best to use and how to to go about starting the entire
+project. I also received help from the internet on how to limit my distance
+to two decimal places. When reading in the information, I took inspiration from
+how I read in cin commands in Metro sim and went about reading information
+the same way. For the path function, to get started on it since I was really
+confused on how to go about it in general, I looked online for help and saw
+a geeksforgeeks tutorial. I took inspiration on how to set up after
+understanding what their code did and after that wrote mine to handle the
+specifications of the path command written on the spec.
+
+D. The files that you provided and a short description of what each file is
+and its purpose.
+
+Graph.h --> The h file contains the public and private functions and
+variables of the class Graph.
+
+Graph.cpp  -->  This cpp files holds the implementation of the
+Graph class. This file handles the programs functionality, takes care of reading
+in values both vertices and edges, and the implementation of queries.
+
+main.cpp --> This cpp file creates an instance of the graph class and calls
+respective functions depending on what the user inputs. It is the file I used
+for testing in phase 1.
+
+testGraph.txt --> This txt file is the main testing file I used in phase 2
+
+E. How to compile and run your program
+
+1.make
+2./findpath (.vdat file) (.adat file)
+
+F. An outline of the data structures and algorithms that you used.
+   Given that this is a data structures class, you always need to
+   discuss the data structure that you used and justify why
+   you used it.  Specifically for this assignment please
+   discuss the features of arrays, major advantages and major
+   disadvantages of utilizing an array list as you have in this
+   assignment.  The algorithm overview may not be relevant
+   depending on the assignment.
+
+The data structure used in this specific assignment is a directed graph. The
+graph is represented through a vector created in the graph class. The vector
+is made of City structs. City structs are how I represented the vertices
+inside the directed graph. The city struct holds the name of the city and
+the location (of type Location) that the city is in. The city struct also holds
+a boolean that dictates whether the city has been visited or not when trying
+to figure out the path between two cities. It also holds a vector of city
+pointers to all the adjacent cities populated by the .adat file. That is how
+this is a directed graph. Since each city has an edge to another city, these
+edges are directed since they "point" to another city in the graph.
+
+
+G. Details and an explanation of how you tested the various parts
+    of assignment and the program as a whole. You may reference
+    the testing files that you submitted to aid in your explanation.
+
+For phase 1, I didn't create any additional testing files like I usually do.
+As opposed to unit testing for phase 1, I thought it better to make a list of
+aspects I should test and use main.cpp to test them or test along the way
+within my graph.cpp class.
+
+1. The way I tested in if I read the vertices correctly:
+After creating the main body of my readVertices() function. The way I tested
+whether I read in the data properly was in two parts:
+    - First I used a for loop that looked like:
+    for (int i = 0; i < (int)graph.size(); i++) {
+    cout << graph[i].name << endl;
+    }
+    This for loop printed out all of the names of all the cities in my graph.
+    If this printed out all of the cities names in the respective data file
+    that I chose to test then this part of reading in worked.
+    - The second part was to test if I read in the location of each city
+    properly
+    The way I did this was I put in this line inside my while loop inside my
+    readVertices() function after I set the location of each city:
+    new_city.location.print();
+    If this printed out all of the locations of the cities properly then
+    reading in worked. I compared my locations to that of the reference
+    implementation.
+
+2. The second thing I tested was my list query.
+    - This was easy to test considering I tested whether this query worked
+    while I was reading in the files. I tested using all of the 3 data
+    files provided. I called the list function in main to make sure it was
+    working. I compared my answers to the reference implementation
+
+3. The third thing I tested was my dist query.
+The things I tested were:
+    - If the distance came out in two decimal places
+    - If v1 to v7 was the same distance as v7 to v1. (the reference
+    implementation said it should be)
+    - If my distances for random cities were the same as the reference
+    implementation
+    - If a city wasn't there that it would produce a distance of -1.00
+
+
+FOR PHASE 2: These are the steps in which I took to test if phase 2 was working
+well
+1. Testing to see if I was reading in the .adat file correctly and populating
+it correctly into my struct. I created the for loop written below inside my
+readEdges() function after reading in and populating the information. If
+everything printed out correctly then it was working.
+
+//TESTING READING IN EDGES:
+// for(int i = 0; i < (int)graph.size(); i++) {
+//     cout << "VERTEX: " << graph.at(i).name << endl;
+//     for(int j = 0; j < (int)graph.at(i).adj_cities.size(); j++) {
+//         cout << graph.at(i).adj_cities.at(j)->name;
+//         cout << endl;
+//     }
+//     cout << endl;
+// }
+
+2. I made a list of all the error checking I had to do for path:
+    - check what happens if there is no path between the two vertices
+    - check what happens if user inputs the wrong city
+    - what happens if max path is a negative number
+    - what happens if the user inputs a wrong query
+    - what happens if the user inputs 0 for max paths
+    - if quitting through EOF is working
+    - if my path function can work with a large number of paths and a large
+    data set.
+
+I created a test file called testGraph.txt where I changed commands as I went
+along testing. I made it in the beginning to specifically check if quit using
+a file was working well and if my program could read from a file in general.
+After that I used that txt file to put in different commands trying them out
+with the different data files provided to check if my program was working with
+all of them. I kept on referring back to the reference during this time and
+checked if my output was the same as the reference's. Along with having
+commands in my txt file I inputted commands on terminal as well to make sure
+my error checking was solid. 
