@@ -1,0 +1,355 @@
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#                            calc40.ums                                       #
+#                                                                             #
+# Authors:    Melis Inanc, Cheryl Melwani                                     #
+# Date:       May 5th, 2021                                                   #
+# Course:     Comp 40                                                         #
+# Assignment: UMASM                                                           #
+#                                                                             #
+# Description: This program contains the calculator related data structures   #
+# and functions of our calculator                                             #
+#                                                                             #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+# Calling Conventions 
+# r0 is zero
+# r1 is the return value 
+# r2 points to call stack (must have same value after return)
+# r3 points to value stack 
+# r4 is non volatile used for temp variables 
+# r5 is a volatile register (good to copy return addresses)
+# r6 and r7 are volatile and are normally .temps
+
+# Allocating space for the value stack
+.section data 
+    .space 15000      # initialize value stack to hold 15,000 32-bit words
+    valuestack: 
+
+.section init
+    .temps r6, r7
+    .zero r0
+    
+# initializes r3 to point to valuestack and r2 to point to callstack 
+init_stack:
+    r3 := valuestack
+    r2 := callstack
+    
+# allocattes memory for every ascii character
+.section rodata
+    jumptable: 
+        .space 256
+
+.section init
+
+# using r4 as an iterative counter to set each value in the 
+# jump table to equal input_error 
+r4 := jumptable
+    
+# initialize every entry as an input error
+set_input_errors: 
+    if(r4 == jumptable + 256) goto end_of_input_error using r5 
+    m[r0][r4] := input_error 
+    r4 := r4 + 1;
+    goto set_input_errors 
+
+end_of_input_error:
+    
+r4 := jumptable + '0'    
+# overwriting ten entries associated with digits '0' to '9' with 
+# the digit label
+set_digits:    
+    if (r4 == jumptable + 58) goto end_of_digits using r5 
+    m[r0][r4] := digit
+    r4 := r4 + 1
+    goto set_digits
+
+end_of_digits: 
+
+# sets functions to their respective spot in the jumptable
+set_functions:
+    m[r0][jumptable + ' '] := waiting
+    m[r0][jumptable + '\n'] := newline
+    m[r0][jumptable + '+'] := add
+    m[r0][jumptable + '-'] := sub
+    m[r0][jumptable + '*'] := mult
+    m[r0][jumptable + '/'] := div
+    m[r0][jumptable + '|'] := or
+    m[r0][jumptable + '&'] := and
+    m[r0][jumptable + 'c'] := negate
+    m[r0][jumptable + '~'] := comp
+    m[r0][jumptable + 's'] := swap
+    m[r0][jumptable + 'd'] := dup
+    m[r0][jumptable + 'p'] := discard
+    m[r0][jumptable + 'z'] := clear
+
+.section text 
+
+# Takes input and puts the input in register r1
+waiting: 
+    r1 := input()
+
+# Takes the input val stored in r1 and goes to
+# the command specified by user using the jumptable 
+# If input is EOF signal, go to end_program to halt the calculator
+waiting_with_character:
+    if (r1 == -1) goto end_program using r5
+    r4 := jumptable + r1
+    r4 := m[r0][r4]
+    goto r4
+
+# Outlines the entering stage as specified by the spec
+# Calls waiting_with_character if the input isn't a digit 
+# pushes the 
+entering: 
+    r1 := input()
+
+    if (r1 <s '0') goto waiting_with_character using r5
+    if (r1 >s '9') goto waiting_with_character using r5
+
+    r4 := r1 - 48        # getting ascii val of input number
+    pop r5 off stack r3  # pop prev value on val stack
+    r5 := r5 * 10        # multiply val by 10
+    r5 := r5 + r4        # adds val to prev val
+    push r5 on stack r3  # pushes it on valuestack
+    goto entering
+
+# Outlines the content of an input_error following the spec
+input_error: 
+    output "unknown character"
+    output '\n'
+    goto waiting
+
+# Outlines the content of a digit following the spec
+digit:
+    r4 := r1 - '0' 
+    push r4 on stack r3
+    goto entering 
+
+# Handles ending the calculator 
+end_program:
+    halt 
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#             IMPLEMENTATION OF RPN CALC OPERATIONS                 #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+newline:
+    r4 := r3    # store the contents of the valuestack in r4 
+    
+
+# Handles the newline loop in order to print values 
+# in the valuestack 
+# Goes to reset_stack when the necessary values have been printed 
+newline_execute: 
+	if (r3 == valuestack) goto reset_stack using r5  
+    output ">>> "
+    push r1 on stack r2        # store return address 
+    r5 := m[r0][r3]            # store val to print in r5 
+    r3 := r3 + 1               # increment counter 
+    push r5 on stack r2        # push val to pring on callsack 
+    goto print linking r1      # call print func in printd.ums
+    output '\n'
+    goto newline_execute       # recursive 
+
+reset_stack: 
+    r3 := r4      # reset the stack to original state after printings
+    goto waiting 
+
+
+# The top two values on valuestack are loaded on to r4 and r5 
+# The values are added and the result is pushed on to the stack
+# Enters waiting stage after completing the task
+# Needs: at least two integers in the stack
+add: 
+    if (r3 >s valuestack - 2) goto print_error_two_elem using r4
+    pop r4 off stack r3     # pop of y from stack 
+    pop r5 off stack r3     # pop of x from stack 
+    r4 := r5 + r4           # x + y
+    push r4 on stack r3 
+    goto waiting 
+
+# The top two values on valuestack are loaded on to r4 and r5 
+# The values are subtracted and the result is pushed on to the stack 
+# Enters waiting stage after completing the task
+# Needs: at least two integers in the stack
+sub: 
+    if (r3 >s valuestack - 2) goto print_error_two_elem using r4
+    pop r4 off stack r3     # pop of y from stack 
+    pop r5 off stack r3     # pop of x from stack 
+    r4 := r5 - r4           # x - y
+    push r4 on stack r3 
+    goto waiting 
+
+# The top two values on valuestack are loaded on to r4 and r5 
+# The values are multiplied and the result is pushed on to the stack 
+# Enters waiting stage after completing the task
+# Needs: at least two integers in the stack
+mult: 
+    if (r3 >s valuestack - 2) goto print_error_two_elem using r4
+    pop r4 off stack r3     # pop of y from stack 
+    pop r5 off stack r3     # pop of x from stack 
+    r4 := r5 * r4           # x * y
+    push r4 on stack r3 
+    goto waiting 
+
+# The top two values on valuestack are loaded on to r4 and r5 
+# The values are divided and the result is pushed on to the stack
+# Enters waiting stage after completing the task
+# Needs: at least two integers in the stack
+div:
+    if (r3 >s valuestack - 2) goto print_error_two_elem using r4 
+    pop r4 off stack r3     # pop of y from stack 
+    if (r4 == 0) goto divide_by_0
+    pop r5 off stack r3     # pop of x from stack 
+    push r1 on stack r2     # store return val on callstack so no info loss
+    if (r4 <s 0) goto neg_denominator using r1   
+    if (r5 <s 0) goto neg_numerator using r1
+    r4 := r5 / r4           # x / y (positive division)
+    push r4 on stack r3 
+    pop r1 off stack r2    # restore return val 
+    goto waiting 
+
+# Helper function to divide when the denominator is zero 
+# Enters waiting stage after completing the task
+divide_by_0: 
+    output "Division by zero\n"
+    push r4 on stack r3        # stack remains unchanged 
+    goto waiting
+
+# Helper function to divide when the numerator is negative
+# Enters waiting stage after completing the task
+neg_numerator: 
+    if (r4 <s 0) goto neg_both using r1      # goto neg_both if both are neg
+    r5 := -r5            # Complements the numerator 
+    r4 := r5 / r4 
+    r4 := -r4            # turns value back to negative 
+    push r4 on stack r3 
+    goto waiting 
+
+# Helper function to divide when the denominator is negative
+# Enters waiting stage after completing the task
+neg_denominator: 
+    if (r5 <s 0) goto neg_both using r1     # goto neg_both if both are neg 
+    r4 := -r4         # complements the denominator
+    r4 := r5 / r4 
+    r4 := -r4         # turns value back to negative
+    push r4 on stack r3 
+    goto waiting
+
+# Helper function to divide when both the denominator 
+# and numerator are zero 
+# Enters waiting stage after completing the task
+neg_both:
+    r4 := -r4
+    r5 := -r5 
+    r4 := r5 / r4 
+    push r4 on stack r3 
+    goto waiting
+
+# Performs a bitwise or operation on the top two values of 
+# the value stack and stores it in r4 and r5.
+# Pushes the result back on the valuestack 
+# Enters waiting stage after completing the task
+# Needs: at least two integers in the stack
+or: 
+    if (r3 >s valuestack - 2) goto print_error_two_elem using r4 
+
+    pop r4 off stack r3     # pop of y from stack 
+    pop r5 off stack r3     # pop of x from stack 
+    r4 := r5 | r4           # x | y
+    push r4 on stack r3 
+    goto waiting 
+
+# Performs a bitwise and operation on the top two values of
+# of the value stack and stores it in r4 and r5 
+# in the stack and pushes the result back on the stack
+# Enters waiting stage after completing the task
+# Needs: at least two integers in the stack
+and: 
+    if (r3 >s valuestack - 2) goto print_error_two_elem using r4 
+
+    pop r4 off stack r3     # pop of y from stack 
+    pop r5 off stack r3     # pop of x from stack 
+    r4 := r5 & r4           # x & y
+    push r4 on stack r3 
+    goto waiting 
+
+# Changes the sign of the top val on valuestack and stores in r4
+# Enters waiting stage after completing the task
+# Needs: at least one integer in the stack
+negate: 
+    if (r3 >s valuestack - 1) goto print_error_one_elem using r4
+
+    pop r4 off stack r3     # pop of x from stack 
+    r4 := -r4               # change sign
+    push r4 on stack r3 
+    goto waiting 
+
+# Takes the bitwise complement of the top val on valuestack and stores in r4
+# Enters waiting stage after completing the task
+# Needs: at least one integer in the stack
+comp: 
+    if (r3 >s valuestack - 1) goto print_error_one_elem using r4 
+
+    pop r4 off stack r3     # pop of x from stack 
+    r4 := ~r4               # x = ~x
+    push r4 on stack r3 
+    goto waiting 
+
+# Performs the swap operation by changing the location of the top 
+# two numbers in the stack (which are stored in r4 and r5) 
+# Enters waiting stage after completing the task
+# Needs: at least two integers in the stack
+swap: 
+    if (r3 >s valuestack - 2) goto print_error_two_elem using r4
+
+    pop r4 off stack r3     # pop of x from stack 
+    pop r5 off stack r3     # pop of y from stack 
+    push r4 on stack r3     # push x on stack 
+    push r5 on stack r3     # push y on stack 
+    goto waiting 
+
+# Duplicates the top val on valuestack
+# Enters waiting stage after completing the task
+# Needs: at least one integer in the stack
+dup:
+    if (r3 >s valuestack - 1) goto print_error_one_elem using r4 
+    
+    pop r4 off stack r3     # pop of x from stack 
+    push r4 on stack r3     
+    push r4 on stack r3  
+    goto waiting 
+
+# Removes the top value in the valuestack 
+# Enters waiting stage after completing the task
+# Needs: at least one integer in the stack
+discard: 
+    if (r3 >s valuestack - 1) goto print_error_one_elem using r4 
+
+    pop r4 off stack r3  # pop of x from stack
+    goto waiting
+
+# Deletes every value in the valuestack
+# Enters waiting stage after completing the task
+clear: 
+    r3 := valuestack 
+    goto waiting 
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#      Functions To Handle Errors                                   #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #  
+
+# Prints error statement when there is less than one element in the 
+# valuestack
+# Enters waiting stage after completing the task
+print_error_one_elem:
+    output "Stack underflow---expected at least 1 element\n"
+    goto waiting
+
+# Prints error statement when there is less than two elements in the 
+# valuestack
+# Enters waiting stage after completing the task
+print_error_two_elem:
+    output "Stack underflow---expected at least 2 elements\n"
+    goto waiting

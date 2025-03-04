@@ -1,0 +1,34 @@
+
+ HW 2 (iii) created by Cheryl Melwani and Anna Wang
+ 
+ Acknolwedgments: 
+ - Noah Mendelson's brightness code posted on the COMP40 website
+ under solutions was used to reorganize our sudoku.c and 
+ unblackedges.c files. After seeing his example, we saw that his way 
+ of getting and closing an input file is a lot more effecient than 
+ the way we structured it. 
+ - Byron and other TA's really helped us out! We couldn't have 
+ finished this without them so big thanks to all of them for helping 
+ us out. 
+- Lectures and content from Megan and Richard helped throughout this 
+process. 
+
+
+What has been correctly implemented: 
+- We believe we have correctly implemented Parts C and D. 
+While there may be a more effecient program out there with better 
+runtime and use of space, we have tested both programs and our 
+program has succeeded all of our tests.
+- We also used the tests outlined on the spec to make sure we 
+followed directions and that our code was working well. 
+
+What has not been correctly implemented: 
+- However, we do understand that there are edge cases that we 
+probably haven't taken care of and our program might fail on those 
+edge cases in both Sudoku and unblackedges. 
+- There is a lack of modularity and abstraction in some parts of our 
+program and that happened due to a lack of time and ability to fully 
+make the code as effecient as can be. 
+
+How much time spent on the assignment: 
+At least 40-50 hours 

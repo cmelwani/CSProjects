@@ -1,0 +1,87 @@
+
+/******************************************************************************
+ *                            README                                          *
+ *                                                                            *
+ * Authors:    Anna Wang (awang15), Cheryl Melwani (cmelwa01)                 *
+ * Date:       March, 2020                                                    *
+ * Course:     Comp 40                                                        *
+ * Assignment: arith                                                          *
+ *                                                                            *
+ * Description: General Information about the arith project                   *
+ *                                                                            *
+ *****************************************************************************/
+
+
+- Identifies you and your programming partner by name:
+Anna Wang (awang15)
+Cheryl Melwani (cmelwa01)
+
+– Briefly explains your architecture (i.e. which files do what)
+
+40image: File that client directly interacts with to perform image 
+        compression and decompression by calling functions compress40
+        and decompress40, which are both handled by compress40.c.
+        This file was provided for us. 
+
+compress40.c/h: Called by 40image, where image compression or 
+        decompression begins. Reads in and performs
+        necessary checks and modifications (i.e. trimmming the portable 
+        pixmap or making sure that the input is a correctly formatted
+        compressed image file) on client input. Then feeds modified 
+        input into the following modules
+
+cvconversions.c/h: Handles the 2 way conversions between RGB and component 
+        video representation. 
+
+dctconversions.c/h: Handles the 2 way discrete cosine transformations(DCT)
+        on component video representations and DCT float values. 
+
+quantize.c/h: Handles the 2 way conversions of quantizing dct values from 
+        floats to bits to prepare for bitpacking, and of unquantizing 
+        dct values from bits to floats after unpacking. 
+
+pack.c/h: Handles the packing and unpacking of 32 bit codewords using our
+        bitpacking program. 
+
+ioword.c/h: Handles the input and output processes of the image 
+        compression and decompression process, specifically reading 
+        in headers, codewords, and printing codewords/compressed images.
+
+bitpack.c: Our implementation of the bitpacking program (Part B) that
+        handles manipulation of bit fields with a 64 bit (8 byte) value 
+        word. 
+
+
+– Acknowledgements:  
+
+TA's that were super helpful: Benjamin London, Byron, and Liana 
+We referenced Megan and Richard's arithmetic lectures and used given solution 
+code, like Uarray2b, A2 methods suite, from locality assignment.
+
+
+– Identifies what has been correctly implemented and what has not
+
+A) We are under the impression that everything has been correctly implemented
+and our compressor and decompressor works well. Our percentage difference 
+is near 2.5% for all the images in /comp/40/bin/images which is a good 
+indication that our compressor and decompressor programs work correctly. 
+We also unit tested each module (i.e. converting rgb structs to component
+video structs) using ppmdiff as we went along to make sure our program worked
+fine every step of the way. Our program produces no valgrind errors or
+memory leaks as well. 
+Our program handles edge cases such as empty input file, input file with
+odd width and height, input file that is too small to be trimmed (i.e.
+width = 1 ). 
+
+B) Our bitpacking program correctly packs and unpacks signed and unsigned
+integers into a single byte/ word. Our program correctly raises exceptions
+using Hanson assertions and correctly implemented the Bitpack_Overflow 
+exception as specified in the spec.
+
+
+– Hours spent analyzing the problems posed in the assignment
+10 hours
+
+– Hours spent solving the problems after your analysis
+Approximatley 60 (could be more though..)
+

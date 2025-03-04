@@ -1,0 +1,39 @@
+/**********************************************************
+* Assignment 1: Filesnpix
+* Comp 40
+* README
+* ANNA WANG (awang15) & CHERYL MELWANI (cmelwa01)
+*********************************************************/
+
+
+Helped that we received: 
+- We've received help from TA's in Office Hours and lab
+ over the past couple of weeks. 
+- We've received help from the lectures (Megan and Richard)
+as well as Q&A sessions to figure how to write this HW
+
+What we implemented correctly: 
+- We implemented brightness correctly, uisng the pnmrdr 
+interface and reading in from both given files and stdin.
+- We implemented simlines correctly such that the 
+output matches that of the spec
+- We implemented readaline correctly such that 
+it follows the functions outlined by the spec. 
+
+What we implemented wrongly: 
+- We may have not caught all of the errors and accounted 
+for all of the input files possible any of the parts of 
+the HW.
+- We could have added more testing files to our 
+implementation so maybe we didn't catch specific
+edge cases that the autograder might.
+- We decided to implement the partial credit
+version of readaline where the function only
+can read up to lines of 200 characters. 
+- We could definetely improve on the modularity of our
+solution for simlines
+
+How many hours we spent on this assignment: 
+60 hours 
+
+

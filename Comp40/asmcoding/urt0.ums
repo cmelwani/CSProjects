@@ -1,0 +1,31 @@
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#                            urt0.ums                                         #
+#                                                                             #
+# Authors:    Melis Inanc, Cheryl Melwani                                     #
+# Date:       May 5th, 2021                                                   #
+# Course:     Comp 40                                                         #
+# Assignment: UMASM                                                           #
+#                                                                             #
+# Description: allocate space for the call stack (in the data section) and    #
+# initialize both the stack pointer and register 0 (in the init section).     #
+#                                                                             #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+# Calling Conventions: 
+# r0 is zero
+# r6 and r7 are volatile and are normally .temps
+# Stack Pointer: r2 (must have same value after return)
+
+# Allocating space for the call stack 
+.section data
+    .space 15000        # initialize call stack to hold 15,000 32-bit words
+
+# Creating a label to define the call stack 
+callstack: 
+    .temps r6, r7 
+    .zero r0
+
+# Setting register 0 to hold 0 & setting the stack pointer to hold the stack 
+.section init
+    r0 := 0              # assign zero to register 0      
+    r2 := callstack      

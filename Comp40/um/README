@@ -1,0 +1,155 @@
+– Identifies you and your programming partner by name
+Cheryl Melwani (cmelwa01) and Devan Venkataraman (dvenka01)
+
+– Acknowledges help you may have received from or collaborative 
+work you may have undertaken with others
+We receieved help from Megan and Richard's Lectures and receieved help
+from COMP40 TA's including Benjamin London, and Gustavo Curioso. 
+
+– Identifies what has been correctly implemented and what has not
+We are under the impression that the entire program has been implemented
+correctly. Our universal machine works well with all of the .um files 
+given in the umbin. However, we aren't sure if it works as effeciently as 
+possible in regards to how long a program takes to compile. 
+
+– Briefly enumerates any significant departures from your design.
+In our initial design, we had the program counter be part of our
+memory struct and then decided to change that to make our program
+counter a local variable in our execute module. We decided to 
+make this change because we came to the conclusion that the only
+module that uses the program counter is the execute module and not
+the memory module. Therefore, we decided that this information
+needed to only live in the execute module. 
+- We also changed our unmapped data structure from a Stack_T 
+to a Seq_T that acts like a Stack structure. This didn't create
+a different in structure and was changed when we thought we 
+had to check the length of the sequence of unmapped ID's. We
+ended up not having to do that so there wasn't any real benefit
+changing it. 
+
+– Succinctly describes the architecture of your system. 
+Identify the modules used, what abstractions they implement, 
+what secrets they know, and how they relate to one another. 
+Avoid narrative descriptions of the behavior of particular modules.
+
+Architecture: 
+We created a memory struct that represents the main memory of the 
+universal machine. Inside the memory struct there is a Sequence 
+(Seq_T) of segments. Seq_T segments is a sequence that stores 64-bit 
+void pointers. Each void pointer represents a segment. Each segment 
+is a sequence of 32-bit instruction codes. To represent the unmapped 
+ID's we use a Seq_T unmapped that stores the indices of unmapped 
+segments in the sequence. This Seq_T performs like a Stack. 
+
+Modules: 
+um module (main):
+ - contains a main function and takes in an input file of type .um. 
+ The command line looks like ./um <filename>. This is the only file that 
+ the user interacts with directly. Program will exit if the 
+ .um file is in an incorrect format or cannot be opened. 
+ - This file interacts with the um_loader module and passes the 
+ .um file with instructions to a function in um_loader.c to read 
+ in the instructions byte by byte. This function returns a 
+ sequence of 32 bit packed instruction codes. 
+ - main then sends those 32 bit packed instruction codes to the
+ execute model in order to execute those instructions. 
+
+um_loader module 
+- handles reading in the .um file using getc() to read in a byte at 
+a time as specified by the spec. The file handles packing 4 bytes together 
+into a 32-bit word. The file will return a sequence of 32-bit instruction 
+words. 
+- Interacts with the main module as specified above. 
+
+memory module 
+- handles the implementation of the memory data structure as 
+specified above in the architecture. This file handles the organization 
+of our data structure and properly creates a memory struct that stores a
+sequence of segments that each store a sequence of 32 bit instruction
+codes and creates a sequence of unmapped ID's. This file will also handle 
+the implementation of all the executions that have to do with segment 
+manipulation which are mapping segments, unmapping segments, segmented load,
+and segmented store.
+- this module knows the secrets of the implementation of these 4 instructions
+that the execute module doesn't have access to. 
+- the memory module interacts with the execute module as execute.c creates 
+a new memory struct with the sequence of 32 bit instruction codes being 
+segment 0 in that memory struct. Memory.c holds implementation for
+segmented oriented instructions and needs register input from execute.c
+
+execute module 
+- handles taking the sequence of 32-bit instruction words that um_loader 
+returned and reads in instructions to be executed. It contains the 
+implementation of executions that exclude segment manipulation.
+- the execute module stores the state of the program via a local 
+array of registers.
+- interacts with the main module. The main module passes the 
+sequence of 32-bit instruction codes and execute.c creates a 
+memory struct storing those instruction codes and executes them. 
+- interacts with the memory module. Execute.c passes the register 
+values to memory.c in order for memory.c to perform segment oriented 
+executions. 
+
+– Explains how long it takes your UM to execute 50 million instructions,
+and how you know
+We found that for midmark, which contains 30,110 instructions, our program
+took 6.16 seconds to run. By this logic, it would take our program about
+170 minutes to run 50 million instructions.
+
+– Mentions each UM unit test (from UMTESTS) by name, explaining what 
+each one tests and how
+    
+    halt.um
+        Calls the instruction halt.
+    halt-verbose.um
+        Lab unit test, redundantly testing halt.
+    conditionalMove.um
+        Loads the values 2, 20 and 50. Creates the conditional
+        statement such that r1 should equal 50. Outputs r1 and 
+        the value should be '2' on terminal.
+    add.um
+        Loads the values 30 and 20 into registers. Adds the two values
+        and outputs the register with the sum. Sum should equal 50. 
+    multiply.um
+        Loads the values 10 and 5 onto the registers. Performs the 
+        multplication instruction. Outputs register and should equal char
+        '2' (ascii value 50).
+    divide.um
+        Loads the values 100 and 2 onto the registers. Performs the 
+        division instruction. Outputs register and should equal char '2'
+        (ascii value 50).
+    bitwiseNAND.um
+        Loads the values 200 and 200 onto the registers. Performs the 
+        bitwiseNAND instruction. Outputs register and value should equal
+        char '7' (ascii value 55).
+    print.um (testing output)
+        Loads the value 'h' onto the register and outputs the value. 
+        Value should equal 'h'.
+    input.um
+        Uses input function and passes in r1 there. Outputs the value 
+        inputted by the function. The output value should equal the input
+        value.
+    segmentedStoreandLoad.um
+        Loads a value into register 2. Stores it in segment 0,0. Then loads
+        0,0 into register 1 and outputs.
+    mapSegment.um
+        Loads values into several registers. Maps a new segment. Loads a value
+        into that new segment, then stores value in new segment in a register
+        and outputs.
+    unmapSegment.um
+        Loads several values. Maps new segment, stores, loads, outputs, unmaps.
+        Maps again, stores, loads, outputs.
+    loadProgram.um
+        Loads a couple values, then loads program with the instruction set into
+        m0, except moving program counter forward. Checks that it correctly
+        skips the first halt statement and does an output.
+
+– Says approximately how many hours you have spent analyzing the assignment
+2 hours
+
+– Says approximately how many hours you have spent preparing your design
+5 hours
+
+– Says approximately how many hours you have spent solving the problems after 
+your analysis
+10 hours

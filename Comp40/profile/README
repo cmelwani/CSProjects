@@ -1,0 +1,25 @@
+README
+HW7 - Profiling
+
+Identifies you and your programming partner by name: 
+- Cheryl Melwani (cmelwa01) and Devan Venkataraman (dvenka01)
+
+Acknowledges help you may have received from or collaborative 
+work you may have undertaken with others: 
+- We receieved help from Megan and Richard's Lectures and receieved help
+from COMP40 TA's including Benjamin London, and Gustavo Curioso. 
+
+Explains what routine in the final um takes up the most time, and says whether
+the assembly code could be improved: 
+- The routine in the final um that takes up most of the time is the
+mapSegment function that calls malloc (through the call to Seg_new)
+and free. The assembly code can't be improved since calls to malloc and
+free are unavoidable and can't be changed. 
+
+Says approximately how many hours you have spent analyzing the problems posed 
+in the assignment:
+2 hours
+
+- Says approximately how many hours you have spent solving the problems 
+after your analysis: 
+13 hours

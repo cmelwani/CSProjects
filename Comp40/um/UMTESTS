@@ -1,0 +1,15 @@
+add.um
+bitwiseNAND.um
+conditionalMove.um
+divide.um
+halt-verbose.um
+halt.um
+input.um
+loadProgram.um
+mapSegment.um
+multiply.um
+print-six.um
+print.um
+segmentedStore.um
+segmentedStoreandLoad.um
+unmapSegment.um

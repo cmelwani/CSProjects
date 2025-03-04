@@ -1,0 +1,69 @@
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#                            printd.ums                                       #
+#                                                                             #
+# Authors:    Melis Inanc, Cheryl Melwani                                     #
+# Date:       May 5th, 2021                                                   #
+# Course:     Comp 40                                                         #
+# Assignment: UMASM                                                           #
+#                                                                             #
+# Description: This program contains contains a function for printing         #
+#              Universal Machine words in decimal                             #
+#                                                                             #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+# Calling Conventions 
+# r0 is zero
+# r1 is the return value 
+# r2 is the call stack pointer 
+# r3 and r4 are non volatiles 
+# r5 is a volatile register (good to copy return addresses)
+# r6 and r7 are volatile and are normally .temps
+
+.section init 
+    .temps r6, r7 
+    .zero r0 
+
+.section text
+
+# Print function that is recursive and goes to other labels 
+print: 
+    pop r5 off stack r2    # r5 holds val to print  
+    push r1 on stack r2    # stores return value 
+    push r3 on stack r2    # stores non volatiles
+    push r4 on stack r2    # stores non volatiles 
+
+    if (r5 <s 0) goto print_negative using r3   # if val is negative
+	goto print_positive  
+
+# Handles printing negative values 
+# changes the sign of the value in register r5 and
+# calls the print_positive function 
+print_negative:
+    r5 := -r5
+    output '-'
+    goto print_positive
+
+# Handles printing positive values 
+print_positive: 
+    r3 := r5           # val to print is stores in r3 
+    r4 := r3 / 10      # get rid of last digit 
+    if (r4 == 0) goto print_digit 
+    # if all digits have been processed or case of 0
+    push r4 on stack r2  # push value on to stack r2 
+    r1 := print_digit    # go to print_digit to output val 
+    goto print           # recursive call to print 
+
+print_digit: 
+    r4 := r4 * 10  
+    # multiply multi digit value with 10 to get least significant bit
+    r3 := r3 - r4      # get least significant bit 
+    output r3 + 48     # output correct value in decimal 
+
+
+# Handles resetting the stack after printing and goes to
+# specific input as specified by user 
+print_end:
+    pop r4 off stack r2   
+    pop r3 off stack r2 
+    pop r5 off stack r2 
+    goto r5

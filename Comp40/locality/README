@@ -1,0 +1,153 @@
+README
+HW3 - locality
+COMP40
+March 8, 2021
+Cheryl Melwani (cmelwa01) Devan Venkataraman (dvenka01)
+
+Acknowledgements:
+We attended office hours on a couple occasions, primarily for help in 
+understanding some of the provided code in ppmtrans and understanding 
+some abstraction concepts in A2Methods. TAs were very helpful, shoutout 
+Byron, Ben London, & Gustavo Curioso thank you guys. Looking through Piazza
+and gaining extra information about output behavior helped as well. Thank 
+you Noah Mendelson's for the UArray2.c solution which was used in our 
+homework. 
+
+What is correctly implemented: 
+To our knowledge, all required components of this assignment are correctly 
+implemented. For the extra credit components, we only implemented the 270 
+degree rotation.
+
+What isn't correctly implemented: 
+We didn't implement the other extra credit components such as flip 
+horizontal and vertical and transpose.
+
+Architecture of our solution: 
+uarray2b.c -- holds the implementation of our UArray2B data structure that 
+represents a blocked array. Our structure for this implementation follows 
+the one outlined by the spec. The UArray2b_T is a struct containing a 
+UArray2_T where each element contains one block. A block is represented 
+as a single UArray_T and its elements are the actual elements to be stored 
+(for ppmtrans.c, these are pixels).
+
+a2plain.c -- methods suite that we implemented following the structure 
+for a2blocked.c 
+
+ppmtrans.c -- uses the A2Methods methods suite that can either use the 
+UArray2B_T or the UArray2_T structure depending on which type of map 
+traversal the user would like to implement.
+
+Part E: 
+-------------------------------------------------------
+Machine Info:
+Computer Name & Model: MacBook Pro (13-inch, 2019, Four Thunderbolt 3 ports)
+CPU Type: Intel(R) Xeon(R) Silver 4214Y CPU @ 2.20GHz
+Clock Rate: 2194.843
+
+
+Our Estimate:
+                    | Row-major | Column-major |  Block-major
+____________________|___________|______________|_____________________
+90 degree rotation  |    1      |       5      |    1 (or 2)
+180 degree rotation |    1      |       5      |    1 (or 2)
+_____________________________________________________________________
+
+Results: Noted as: Total CPU Time (nanoseconds) 
+                   Time per input pixel (nanoseconds)
+                   Estimated number of instructions executed per input 
+                   pixel
+
+Estimated # of instructions per input pixel = 
+    (Total CPU Time * 1,000,000) / # of pixels
+
+Filename: from-wind-cave.jpeg -> pnmscale 10
+Size of image: 8160 x 4580 pixels
+                    | Row-major    | Column-major |  Block-major
+____________________|_____________ |______________|________________
+90 degree rotation  |3838667387 ns |4128211895 ns |4162879719 ns   
+                    |103 ns        |110 ns        |111 ns       
+                    |102.7         |110.5         |111.4       
+____________________|______________|______________|________________
+180 degree rotation |2005114874 ns |6342927883 ns |4169677731 ns  
+                    |54 ns         |170 ns        |112 ns       
+                    |53.6          |169.7         |111.6       
+____________________|______________|______________|________________
+
+
+Filename: flowers.jpeg -> pnmscale 8
+Size of image: 6528 x 3664
+                    | Row-major        | Column-major        |  Block-major
+____________________|__________________|_____________________|______________
+90 degree rotation  |2428283442 ns     |2430909334 ns        |2681421592 ns
+                    |102 ns            |102 ns               |112 ns       
+                    |101.5             |101.6                |112.1       
+____________________|__________________|_____________________|______________
+180 degree rotation |1290364117 ns     |4005177809 ns        |2699692551 ns 
+                    |54 ns             |167 ns               |113 ns   
+                    |53.9              |167.4                |112.9
+____________________|__________________|_____________________|______________
+
+Filename: desert.jpeg -> pnmscale 6
+Size of image: 6528 x 3664
+                    | Row-major        | Column-major        |  Block-major
+____________________|__________________|_____________________|______________
+90 degree rotation  |1264000791 ns     |1197204372 ns        |1459281533 ns
+                    |94 ns             |89 ns                |108 ns       
+                    |93.9              |89.0                 |108.5       
+____________________|__________________|_____________________|______________
+180 degree rotation |757056181 ns      |2115079688 ns        |1530904116 ns
+                    |56 ns             |157 ns               |114 ns       
+                    |56.3              |157.2                |113.8       
+____________________|__________________|_____________________|______________
+
+Analysis of 0 & 270:
+We repeated time testing for 2 files across 3 mapping methods and 2 rotations
+each for a total of 12 tests. For the first rotation, we also included tests 
+of 0 degree rotation and 270 degree rotation to see how they differed from 
+the above. As expected, the 0 degree rotation was the fastest rotation, as it 
+had the simplest read / writes of any rotation. 270 degree rotation had quite 
+similar results as the 90 degree rotation, which makes sense intuitively as 
+the read / write logic follows that of the 90 degreen rotation very closely.
+
+180 Analysis:
+From the data that we gathered that included varying sizes of images, the 
+best performing map function for a 180 degree rotation is row-major access.
+The worst performing map function for a 180 degree rotation is col-major 
+access. Block-major access works in a speed in between the other two 
+map functions. This pattern was consistant amongst all the images that we
+tested (small, medium, and large). Why is this the case? 
+
+The spec says "In a 180-degree rotation, rows map to rows and columns 
+map to columns. Thus, whatever locality properties are enjoyed by the 
+source-image processing are enjoyed equally by the destination-image
+processing." As the spec suggests, using a row-major access in a 180 degree 
+rotation means that the program gets the benefit of reading in and writing 
+elements that are consecutively stored in memory. On the other hand, using
+a column-major access in a 180 degree rotation means that the program 
+doesn't get the benefit of reading in or writing elements that are
+consecutively stored in memory. Thus, row-major consistently works very well
+with a 180 degree rotation and column-major consistently doesn't work well.
+
+Since block-major has more operations than row-major access but the program
+still benefits from reading in and writing elements that are consecutively
+stored in memory, block-major works better than column-major but worse 
+than row-major for a 180 degree rotation.
+
+90 Analysis:
+Our findings for 90 degree rotations are less obvious, as the spec suggested
+they may be. The reason for this is that in a 90 degree rotation, each 
+row-read corresponds to a column-write, and vice versa. So, the row-major 
+method no longer benefits from the spatial locality of row-read to 
+row-writes as in 180. Our tests show that row-major edges out column-major 
+in the largest file, but most importantly, the two converge as the file 
+becomes smaller. We expect that this conversion occurs as the image becomes 
+smaller because more of the image is able to be stored in the cache. So, 
+the mapping method becomes more trivial as we have fewer cache misses in a 
+smaller image.
+
+Finally, similar to above, block-major has more operations than row-major and 
+column-major access. However, block-major no longer benefits from the spatial
+locality of the 180 degree rotation. So, block-major consistently performs
+the worst of the 3 mapping methods for a 90 degree rotation.
+
+This assignment took approximately 25 hours.

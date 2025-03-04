@@ -1,0 +1,24 @@
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#                            callmain.ums                                     #
+#                                                                             #
+# Authors:    Melis Inanc, Cheryl Melwani                                     #
+# Date:       May 5th, 2021                                                   #
+# Course:     Comp 40                                                         #
+# Assignment: UMASM                                                           #
+#                                                                             #
+# Description: makes the initial call to main, then halts (all in the init    #
+# section).                                                                   #
+#                                                                             #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+# Calling Conventions: 
+# r0 is zero
+# r1 is the return address register and the result register
+# r6 and r7 are volatile and are normally .temps 
+
+.section init 
+    .temps r6, r7 
+    .zero r0 
+main:               # initial call to main to begin the program
+    goto waiting    # go to waiting in calc40.ums
+    halt            
