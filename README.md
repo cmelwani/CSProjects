@@ -8,4 +8,4 @@ This repository consists of some of the work I saved during my university career
 
 [Comp40](Comp40/README.md): Machine Structure & Assembly Language
 
-Comp86: Object-oriented Programming For Graphical User Interfaces
+[Comp86](Comp86/README.md): Object-oriented Programming For Graphical User Interfaces
